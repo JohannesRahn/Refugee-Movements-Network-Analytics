@@ -1,28 +1,32 @@
-asylum_data = read.csv("data\\asylum-decisions.csv", header=TRUE, sep=";")
+dt.asylum.data <- read.csv("data\\asylum-decisions.csv", header=TRUE, sep=";")
 
-country_income = read.csv("data\\income_data.csv", header=TRUE)
+dt.country.income <- read.csv("data\\income_data.csv", header=TRUE)
 
-#country_demographics = read.csv("data\\demographics.csv", header=TRUE, sep=";")
+#country.demographics <- read.csv("data\\demographics.csv", header=TRUE, sep=";")
 
-country_capitals = read.csv("data\\concap.csv", header=TRUE)
+dt.country.capitals <- read.csv("data\\concap.csv", header=TRUE)
 
-country_info_merge = merge(country_income, country_capitals, by.x= "Country", 
+dt.country.info.merge <- merge(dt.country.income, dt.country.capitals, by.x= "Country", 
                            by.y = "CountryName")
 
-full_data = asylum_data
+dt.full.data <- dt.asylum.data
 
-full_data = merge(full_data, country_info_merge, by.x="Country.of.origin",
-                                   by.y="Country")
-#TODO: Rename to origin
-colnames(full_data,)
+# Merge for Asylum Information
+dt.full.data <- merge(dt.full.data, dt.country.info.merge, by.x="Country.of.asylum", by.y="Country")
+# renaming column
+names(dt.full.data)[names(dt.full.data)=="Income.group"] <- "Asylum_Income"
+names(dt.full.data)[names(dt.full.data)=="CapitalName"] <- "Asylum_Capital"
+names(dt.full.data)[names(dt.full.data)=="CapitalLatitude"] <- "Asylum_Capital_Lat"
+names(dt.full.data)[names(dt.full.data)=="CapitalLongitude"] <- "Asylum_Capital_Long"
 
-full_data = merge(full_data, country_income, by.x="Country.of.destination",
-                  by.y="Country")
-full_data
-# TODO: Rename to destination
+# Merge for Origin Information
+dt.full.data <- merge(dt.full.data, dt.country.info.merge, by.x="Country.of.origin", by.y="Country")
+# renaming columns
+names(dt.full.data)[names(dt.full.data)=="Income.group"] <- "Origin_Income"
+names(dt.full.data)[names(dt.full.data)=="CapitalName"] <- "Origin_Capital"
+names(dt.full.data)[names(dt.full.data)=="CapitalLatitude"] <- "Origin_Capital_Lat"
+names(dt.full.data)[names(dt.full.data)=="CapitalLongitude"] <- "Origin_Capital_Long"
+
+dt.full.data
 
 
-
-# normalize names to comply with NDA style guide
-setnames(dt.iris, names(dt.iris), 
-         tolower(gsub(".", "_", names(dt.iris), fixed=TRUE))) 
