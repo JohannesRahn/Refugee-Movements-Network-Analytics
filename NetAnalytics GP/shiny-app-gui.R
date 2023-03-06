@@ -1,5 +1,5 @@
 # install.packages("shinydashboard")
-install.packages("dplyr")
+# install.packages("dplyr")
 
 library(shiny)
 library(shinydashboard)
@@ -48,15 +48,27 @@ server <- function(input, output) {
   # Total Asylum Decisions per Year plot
   output$total_decisions_plot <- renderPlot({
     ggplot(dt.aggregated.asylum, aes(x = Year, y = Total.decisions)) +
-      geom_line() +
-      labs(title = "Total Asylum Decisions per Year")
+      geom_line(color = "#0072B2") +
+      labs(title = "Total Asylum Decisions per Year",
+           x = "Year",
+           y = "Total Asylum Decisions") +
+      theme_minimal() +
+      theme(plot.title = element_text(face = "bold", size = 16),
+            axis.title = element_text(face = "bold", size = 14),
+            axis.text = element_text(size = 12))
   })
   
   # Recognized Decisions per Year plot
   output$recognized_decisions_plot <- renderPlot({
     ggplot(dt.aggregated.asylum, aes(x = Year, y = Recognized.decisions)) +
-      geom_line() +
-      labs(title = "Recognized Decisions per Year")
+      geom_line(color = "#0072B2") +
+      labs(title = "Recognized Decisions per Year",
+           x = "Year",
+           y = "Recognized Decisions") +
+      theme_minimal() +
+      theme(plot.title = element_text(face = "bold", size = 16),
+            axis.title = element_text(face = "bold", size = 14),
+            axis.text = element_text(size = 12))
   })
 }
 
