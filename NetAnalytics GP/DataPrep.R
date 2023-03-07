@@ -11,29 +11,42 @@ prepare_data <- function() {
   dt.country.info.merge <- merge(dt.country.income, dt.country.capitals, by.x= "Country", 
                              by.y = "CountryName")
   
-  dt.full.data <- dt.asylum.data
   
   # Merge for Asylum Information
-  dt.full.data <- merge(dt.full.data, dt.country.info.merge, by.x="Country.of.asylum", by.y="Country")
+  dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.asylum", by.y="Country")
   # renaming column
-  names(dt.full.data)[names(dt.full.data)=="Income.group"] <- "Asylum_Income"
-  names(dt.full.data)[names(dt.full.data)=="CapitalName"] <- "Asylum_Capital"
-  names(dt.full.data)[names(dt.full.data)=="CapitalLatitude"] <- "Asylum_Capital_Lat"
-  names(dt.full.data)[names(dt.full.data)=="CapitalLongitude"] <- "Asylum_Capital_Long"
+  names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Asylum_Income"
+  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Asylum_Capital"
+  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLatitude"] <- "Asylum_Capital_Lat"
+  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Asylum_Capital_Long"
   
   # Merge for Origin Information
-  dt.full.data <- merge(dt.full.data, dt.country.info.merge, by.x="Country.of.origin", by.y="Country")
+  dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.origin", by.y="Country")
   # renaming columns
-  names(dt.full.data)[names(dt.full.data)=="Income.group"] <- "Origin_Income"
-  names(dt.full.data)[names(dt.full.data)=="CapitalName"] <- "Origin_Capital"
-  names(dt.full.data)[names(dt.full.data)=="CapitalLatitude"] <- "Origin_Capital_Lat"
-  names(dt.full.data)[names(dt.full.data)=="CapitalLongitude"] <- "Origin_Capital_Long"
+  names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Origin_Income"
+  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Origin_Capital"
+  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLatitude"] <- "Origin_Capital_Lat"
+  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Origin_Capital_Long"
   
-  dt.full.data
-  
+  dt.asylum.data
   # Return prepared data
-  return(dt.full.data)
+  return(dt.asylum.data)
 
+}
+
+aggregate_data <- function() {
+  #This function sums up all information for each year
+  dt.aggregated.asylum <- prepare_data() %>%
+    group_by(Year) %>%
+    reframe(Total_decisions = sum(Total.decisions),
+              Recognized_decisions = sum(Recognized.decisions),
+              Rejected_decisions = sum(Rejected.decisions),
+              Otherwise_closed = sum(Otherwise.closed),
+              # Calculate all closed cases
+              Total_closed = Rejected_decisions + Otherwise.closed,
+              Complementary_protection = sum(Complementary.protection))
+  
+  return(dt.aggregated.asylum)
 }
 # Group by nach Land und Jahr, da manche Rows doppelt
 
