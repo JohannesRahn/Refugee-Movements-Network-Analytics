@@ -38,7 +38,7 @@ aggregate_data <- function() {
   #This function sums up all information for each year
   dt.aggregated.asylum <- prepare_data() %>%
     group_by(Year) %>%
-    reframe(Total_decisions = sum(Total.decisions),
+    summarise(Total_decisions = sum(Total.decisions),
               Recognized_decisions = sum(Recognized.decisions),
               Rejected_decisions = sum(Rejected.decisions),
               Otherwise_closed = sum(Otherwise.closed),
