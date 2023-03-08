@@ -1,4 +1,5 @@
 prepare_data <- function() {
+  #TODO Safe file
 
   dt.asylum.data <- read.csv("data\\asylum-decisions.csv", header=TRUE, sep=";")
   
@@ -43,7 +44,7 @@ aggregate_data <- function() {
               Rejected_decisions = sum(Rejected.decisions),
               Otherwise_closed = sum(Otherwise.closed),
               # Calculate all closed cases
-              Total_closed = Rejected_decisions + Otherwise.closed,
+              Total_closed = sum(Rejected_decisions) + sum(Otherwise.closed),
               Complementary_protection = sum(Complementary.protection))
   
   return(dt.aggregated.asylum)

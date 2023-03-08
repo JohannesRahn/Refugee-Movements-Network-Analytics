@@ -1,12 +1,15 @@
 # install.packages("shinydashboard")
 # install.packages("dplyr")
+#install.packages("rsconnect")
 
 library(shiny)
 library(shinydashboard)
-library(shinydashboard)
 library(ggplot2)
 library(dplyr)
-source("DataPrep.R")
+library(rsconnect)
+
+
+source("server.R")
 
 
 # Define UI
@@ -115,3 +118,8 @@ server <- function(input, output) {
 
 # Run the app
 shinyApp(ui, server)
+
+library(rsconnect)
+rsconnect::setAccountInfo(name='johannesrahn', token='0AEEF974B4F3D3DC382E3E5DC9B30A54', secret='SQ4oEwqbn97TEfhTPlGy0WgorfB74RYL9HxGzdxy')
+
+rsconnect::deployApp()
