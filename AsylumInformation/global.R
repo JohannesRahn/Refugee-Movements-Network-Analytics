@@ -5,37 +5,37 @@ library(dplyr)
 library(rsconnect)
 
 prepare_data <- function() {
-  #TODO Safe file
-
-  dt.asylum.data <- read.csv("data\\asylum-decisions.csv", header=TRUE, sep=";")
+  #TODO Save file
   
-  dt.country.income <- read.csv("data\\income_data.csv", header=TRUE)
-  
-  #country.demographics <- read.csv("data\\demographics.csv", header=TRUE, sep=";")
-  
-  dt.country.capitals <- read.csv("data\\concap.csv", header=TRUE)
-  
-  dt.country.info.merge <- merge(dt.country.income, dt.country.capitals, by.x= "Country", 
-                             by.y = "CountryName")
-  
-  
-  # Merge for Asylum Information
-  dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.asylum", by.y="Country", all.x=TRUE)
-  # renaming column
-  names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Asylum_Income"
-  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Asylum_Capital"
-  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLatitude"] <- "Asylum_Capital_Lat"
-  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Asylum_Capital_Long"
-  
-  # Merge for Origin Information
-  dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.origin", by.y="Country", all.x=TRUE)
-  # renaming columns
-  names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Origin_Income"
-  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Origin_Capital"
-  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLatitude"] <- "Origin_Capital_Lat"
-  names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Origin_Capital_Long"
-  
-  dt.asylum.data
+  if (file.exists("asylum_data.RData")) {
+    load("asylum_data.RData")
+    
+  } else {
+    dt.asylum.data <- read.csv("data\\asylum-decisions.csv", header=TRUE, sep=";")
+    dt.country.income <- read.csv("data\\income_data.csv", header=TRUE)
+    dt.country.capitals <- read.csv("data\\concap.csv", header=TRUE)
+    dt.country.info.merge <- merge(dt.country.income, dt.country.capitals, by.x= "Country", 
+                                   by.y = "CountryName")
+    
+    # Merge for Asylum Information
+    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.asylum", by.y="Country", all.x=TRUE)
+    # renaming column
+    names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Asylum_Income"
+    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Asylum_Capital"
+    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLatitude"] <- "Asylum_Capital_Lat"
+    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Asylum_Capital_Long"
+    
+    # Merge for Origin Information
+    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.origin", by.y="Country", all.x=TRUE)
+    # renaming columns
+    names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Origin_Income"
+    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Origin_Capital"
+    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLatitude"] <- "Origin_Capital_Lat"
+    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Origin_Capital_Long"
+    
+    save(dt.asylum.data, file="asylum_data.RData")
+    
+  }
   # Return prepared data
   return(dt.asylum.data)
 
