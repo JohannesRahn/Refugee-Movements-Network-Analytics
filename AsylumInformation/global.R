@@ -3,7 +3,6 @@ library(shinydashboard)
 library(ggplot2)
 library(dplyr)
 library(rsconnect)
-library(shiny)
 
 prepare_data <- function() {
   #TODO Safe file
@@ -21,7 +20,7 @@ prepare_data <- function() {
   
   
   # Merge for Asylum Information
-  dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.asylum", by.y="Country")
+  dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.asylum", by.y="Country", all.x=TRUE)
   # renaming column
   names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Asylum_Income"
   names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Asylum_Capital"
@@ -29,7 +28,7 @@ prepare_data <- function() {
   names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Asylum_Capital_Long"
   
   # Merge for Origin Information
-  dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.origin", by.y="Country")
+  dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.origin", by.y="Country", all.x=TRUE)
   # renaming columns
   names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Origin_Income"
   names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Origin_Capital"
@@ -59,7 +58,5 @@ aggregate_data <- function() {
 # Group by nach Land und Jahr, da manche Rows doppelt
 
 # Header bauen
-
-
 
 

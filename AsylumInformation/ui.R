@@ -4,13 +4,18 @@ ui <- dashboardPage(
   
   dashboardHeader(
     title = "Asylum Analysis"
+    # ,tags$head(
+    #   tags$link(list(rel = "stylesheet", type = "text/css", 
+    #             href = "https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"))
+    # )
     # Not working
     #, tags$head(tags$link(rel = "shortcut icon", href = "DALL-E-Web-Icon.png"))
   ),
   
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Descriptive Analysis", tabName = "analysis", icon = icon("chart-bar"))
+      menuItem("Descriptive Analysis", tabName = "analysis", 
+               icon = icon("chart-bar"))
       , menuItem("Network Graph", tabName = "worldmap", icon = icon("globe"))
       , menuItem("About", tabName = "worldmap", icon = icon("info-circle"))
     )
