@@ -3,6 +3,10 @@ library(shinydashboard)
 library(ggplot2)
 library(dplyr)
 library(rsconnect)
+library(shinyWidgets)
+library(igraph)
+library(data.table)
+
 
 prepare_data <- function() {
   #TODO Save file
@@ -55,8 +59,18 @@ aggregate_data <- function() {
   
   return(dt.aggregated.asylum)
 }
+
+
+# vertices.network <- function() {
+#   dt.asylum <- prepare_data()
+#   all.origins <- dt.asylum[, list(name = unique(Country.of.origin), type = TRUE)]
+#   all.origins
+#   all.asylum <- dt.asylum[, list(name = unique(Country.of.asylum), type = FALSE)]
+#   all.asylum
+#   all.vertices <- rbind(all.origins, all.asylum)
+#   return(all.vertices)
+# }
 # Group by nach Land und Jahr, da manche Rows doppelt
 
 # Header bauen
-
 
