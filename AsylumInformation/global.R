@@ -4,7 +4,8 @@ library(ggplot2)
 library(dplyr)
 library(rsconnect)
 
-prepare_data <- function() {
+prepare_data <- function(country.of.origin = NULL, country.of.destination = NULL, 
+                         income.group.origin = NULL, income.group.asylum = NULL) {
   #TODO Save file
   
   if (file.exists("asylum_data.RData")) {
@@ -35,6 +36,19 @@ prepare_data <- function() {
     
     save(dt.asylum.data, file="asylum_data.RData")
     
+  }
+  # Filtering in case arguments to filters were passed in the method
+  if (!is.null(country.of.origin)) {
+    dt.asylum.data <- dt.asylum.data[dt.asylum.data$Country.of.origin == country.of.origin,]
+  }
+  if (!is.null(country.of.destination)) {
+    dt.asylum.data <- dt.asylum.data[dt.asylum.data$Country.of.asylum == country.of.destination,]
+  }
+  if (!is.null(income.group.origin)) {
+    dt.asylum.data <- dt.asylum.data[dt.asylum.data$Origin_Income == income.group.origin,]
+  }
+  if (!is.null(income.group.asylum)) {
+    dt.asylum.data <- dt.asylum.data[dt.asylum.data$Asylum_Income == income.group.asylum,]
   }
   # Return prepared data
   return(dt.asylum.data)
