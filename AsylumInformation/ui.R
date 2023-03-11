@@ -1,7 +1,7 @@
 source("server.R")
-
+dt.asylum <- prepare_data()
+# dt.asylum$Country.of.origin <- as.character(dt.asylum$Country.of.origin)
 ui <- dashboardPage(
-  
   dashboardHeader(
     title = "Asylum Analysis"
     # ,tags$head(
@@ -16,8 +16,9 @@ ui <- dashboardPage(
     sidebarMenu(
       menuItem("Descriptive Analysis", tabName = "analysis", 
                icon = icon("chart-bar"))
-      , menuItem("Network Graph", tabName = "worldmap", icon = icon("globe"))
-      , menuItem("About", tabName = "worldmap", icon = icon("info-circle"))
+      , menuItem("Network Graph", tabName = "network", icon = icon("globe"))
+      , menuItem("Network Exploration", tabName = "network_exploration", icon = icon("code"))
+      , menuItem("About", tabName = "about", icon = icon("info-circle"))
     )
   ),
   dashboardBody(
@@ -33,14 +34,25 @@ ui <- dashboardPage(
               )
               
       ),
-      tabItem(tabName = "worldmap",
-              # Add network graph for world map page
+      tabItem(tabName = "network",
+              uiOutput("origin.selector"),
+              uiOutput("asylum.selector"),
+              uiOutput("asylum.income.selector"),
+              pickerInput("origin", "Country of origin", choices=unique(dt.asylum$Country.of.origin), options = list(actions_box = TRUE), selected=NULL, multiple=TRUE),
+              
+
+
+
       ),
-      tabItem(tabName = "about",
+      tabItem(tabName = "network_exploration"
+              
+      ),
+      tabItem(tabName = "about"
               
       )
     )
   )
 )
+
 # Run the app
 shinyApp(ui, server)
