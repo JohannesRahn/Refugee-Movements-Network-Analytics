@@ -12,8 +12,6 @@ library(circlize)
 library(networkD3)
 library(visNetwork)
 
-options(digits = 4)
-
 
 prepare_data <- function() {
   #TODO Save file
@@ -69,8 +67,19 @@ aggregate_data <- function() {
 # Group by nach Land und Jahr, da manche Rows doppelt
 
 # Header bauen
+######################
+
+# Add a new column with the sum of total decisions by country of origin
+#Country of asylum sums
+dt.asylum <- prepare_data()
+# assuming your dataframe is named 'df'
+df_filtered <- dt.asylum %>%
+  filter(Year == 2022) %>% # replace 2022 with the desired year
+  group_by(Country.of.asylum) %>%
+  summarize(total.decisions = sum(Total.decisions))
 
 
+######################
 create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   dt.asylum <- prepare_data()
   dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.origin == country & dt.asylum$Year == Year_input, ])
@@ -279,7 +288,7 @@ circular_graph <- function(year) {
   # Execute the closeness function within the new environment
   bet <- betweenness(g.circ)
   eigen <- evcent(g.circ)$vector
-  close <- round(closeness(g.circ), 4)
+  close <- closeness(g.circ)
   
   df <- data.frame(index = names(bet), country = V(g.circ)$label, betweenness = bet, eigenvector = eigen, closeness = close)
   df.bet.ordered <- df[order(-df$betweenness), c("country", "betweenness")]
@@ -297,7 +306,7 @@ circular_graph <- function(year) {
     Country_Eigenvector = df.eigen.ordered$country,
     Eigenvector = df.eigen.ordered$eigenvector,
     Country_Closeness  = df.close.ordered$country,
-    Closeness = df.close.ordered$closeness
+    Closeness = format(round(df.close.ordered$closeness, 4))
   )
     
   return(list(visnetwork_refugees, g.circ, df.merged, df))}

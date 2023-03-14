@@ -26,6 +26,29 @@ ui <- dashboardPage(
   dashboardBody(
     tabItems(
       tabItem(tabName = "analysis",
+              fluidRow(
+                column(
+                  width = 4,
+                  plotOutput("total.asylum"),
+                  verbatimTextOutput("bar1_text")),
+                column(
+                  width = 4,
+                  plotOutput("total.origin"),
+                  verbatimTextOutput("bar1_text")),
+                column(
+                  width = 4,
+                  plotOutput("total.rejection", height = 400),
+                  verbatimTextOutput("bar1_text")
+                )),
+              
+              fluidRow(
+                column(
+                  width = 4,
+                  plotOutput("total.rejection.rate"),
+                  verbatimTextOutput("bar1_text")),
+                ),
+              
+              
               # Add graphs for descriptive analysis page
               fluidRow(
                 column(6, plotOutput("total.decisions.plot")),
