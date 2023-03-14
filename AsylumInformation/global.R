@@ -12,6 +12,9 @@ library(circlize)
 library(networkD3)
 library(visNetwork)
 
+options(digits = 4)
+
+
 prepare_data <- function() {
   #TODO Save file
   
@@ -101,6 +104,8 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   if (income_level == "All levels"){
     # Create the graph
     g <- graph.data.frame(edges, directed = TRUE, vertices = location.vertices)
+    g <- set_edge_attr(g, "weight", value= dt.asylum.filtered$Total.decisions + 0.001)
+    weights <- E(g)$weight
     plot(g)
     
   # There is a chosen income level
@@ -158,7 +163,6 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
 
   return(list(graph = g, vert = vert, edges = edges, edges_lines = edges_sp))
 }
-
 
 circular_graph <- function(year) {
   dt.asylum <- prepare_data()
@@ -259,7 +263,7 @@ circular_graph <- function(year) {
   colnames(edge_2015_2)[c(1,2)] <- c("from", "to")
   
   # create an igraph network
-  g_circle <- graph_from_data_frame(edge_2015_2, directed = TRUE, vertices = node_2015_2)
+  g.circ <- graph_from_data_frame(edge_2015_2, directed = TRUE, vertices = node_2015_2)
 
   # create the same graph with visNetwork for better visualization
   visnetwork_refugees <- visNetwork(node_2015_2, edge_2015_2, width = "100%", height = "600px") %>%
@@ -269,7 +273,34 @@ circular_graph <- function(year) {
     visInteraction(hover = TRUE, navigationButtons = TRUE) #%>% 
     visnetwork_refugees
     
-    return(list(visnetwork_refugees, g_circle, countries_origin))}
+  V(g.circ)$label
+
+
+  # Execute the closeness function within the new environment
+  bet <- betweenness(g.circ)
+  eigen <- evcent(g.circ)$vector
+  close <- round(closeness(g.circ), 4)
+  
+  df <- data.frame(index = names(bet), country = V(g.circ)$label, betweenness = bet, eigenvector = eigen, closeness = close)
+  df.bet.ordered <- df[order(-df$betweenness), c("country", "betweenness")]
+  df.bet.ordered <- df.bet.ordered[1:10, ]
+  
+  df.eigen.ordered <- df[order(-df$eigenvector), c("country", "eigenvector")]
+  df.eigen.ordered <- df.eigen.ordered[1:10, ]
+  
+  df.close.ordered <- df[order(-df$closeness), c("country", "closeness")]
+  df.close.ordered <- df.close.ordered[1:10, ]
+  
+  df.merged <- data.frame(
+    Country_Betweenness = df.bet.ordered$country,
+    Betweenness = df.bet.ordered$betweenness,
+    Country_Eigenvector = df.eigen.ordered$country,
+    Eigenvector = df.eigen.ordered$eigenvector,
+    Country_Closeness  = df.close.ordered$country,
+    Closeness = df.close.ordered$closeness
+  )
+    
+  return(list(visnetwork_refugees, g.circ, df.merged, df))}
   
 create_prediction_graph <- function() {
   dt.asylum <- prepare_data()

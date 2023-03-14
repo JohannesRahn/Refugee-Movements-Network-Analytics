@@ -2,12 +2,13 @@
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
+  options(digits = 4)
   dt.aggregated.asylum <- aggregate_data()
   dt.asylum <- prepare_data()
   g = graph.data.frame(dt.asylum, directed=TRUE)
   
   
-  # this is a reactive element to change origin and asylum column as character
+  # This is a reactive element to change origin and asylum column as character
   dt.asylum.st <- reactive({
     source("global.R")
     dt <- prepare_data()
@@ -16,6 +17,7 @@ server <- function(input, output, session) {
     dt
   })
     
+  # Create reactive element for circular graph
   graph_data <- reactive({
     # Calculate the graph based on the data
     circular_plot <- circular_graph(input$year)
@@ -98,10 +100,18 @@ server <- function(input, output, session) {
     g <- graph$g
     edges_lines <- graph$edges_lines
     
+    edges_df <- SpatialLinesDataFrame(edges_lines, edges)
+    
+    pal <- colorQuantile(palette = "YlOrRd", domain = unique(edges$weight), n = 10)
+    # Calculate quantiles and create labels
+    quantiles <- quantile(edges$weight, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
+    
     leaflet(vert) %>% 
       addProviderTiles(providers$CartoDB.Voyager) %>% 
       addCircleMarkers() %>% 
-      addPolylines(data = edges_lines, weight = 1, color = edges$weights)})
+      addPolylines(data = edges_df, weight = 2, color = ~pal(weight)) %>%
+      addLegend(pal = pal, values = edges$weight, title = "Total Decisions", position = "bottomright")
+  })
   
   # Statistics to country of origin network
   output$info <- renderTable({
@@ -149,33 +159,27 @@ server <- function(input, output, session) {
   # Creates a table with statistical information about circle_graph
   output$betweenness <- renderTable({
       # access the igraph return of the graph_data function
-      g.circ <- graph_data()[[2]]
-      V(g.circ)$label
-      bet <- betweenness(g.circ)
-      eigen <- evcent(g.circ)$vector 
-      close <- closeness(g.circ)
-      
-      df <- data.frame(index = names(bet), country = V(g.circ)$label, betweenness = bet, eigenvector = eigen, closeness = close)
-      df.bet.ordered <- df[order(-df$betweenness), c("country", "betweenness")]
-      df.bet.ordered <- df.bet.ordered[1:10, ]
-      
-      df.eigen.ordered <- df[order(-df$eigenvector), c("country", "eigenvector")]
-      df.eigen.ordered <- df.eigen.ordered[1:10, ]
-
-      df.close.ordered <- df[order(-df$closeness), c("country", "closeness")]
-      df.close.ordered <- df.close.ordered[1:10, ]
-
-      data.frame(
-        Country_Betweenness = df.bet.ordered$country,
-        Betweenness = df.bet.ordered$betweenness,
-        Country_Eigenvector = df.eigen.ordered$country,
-        Eigenvector = df.eigen.ordered$eigenvector,
-        Country_Closeness  = df.close.ordered$country,
-        Closeness = df.close.ordered$closeness
-      )
-      
-     
-      
+      df <- graph_data()[[3]]
+      df
+  })
+  
+  # Show Table with min/max/median values 
+  output$statistics.circ <- renderTable({
+    df <- graph_data()[[4]]
+    col <- switch(input$col,
+                  "betweenness" = df$betweenness,
+                  "closeness" = df$closeness,
+                  "eigenvector" = df$eigenvector)
+    min_val <- min(col)
+    max_val <- max(col)
+    mean_val <- mean(col)
+    median_val <- median(col)
+    sd_val <- sd(col)
+    statistics <- data.frame(
+      Statistic = c("Minimum", "Mean", "Median", "Maximum", "Standard Deviation"),
+      Value = c(min_val, mean_val, median_val, max_val, sd_val)
+    )
+    statistics
   })
   
   # Introduction to network prediction

@@ -69,7 +69,12 @@ ui <- dashboardPage(
                 column(3, uiOutput("description_cen")),
                 column(9, tableOutput("betweenness")),
               ),
-      ),
+              
+              fluidRow(
+                column(4, radioButtons("col", "Choose a column:",
+                                choices = c("betweenness", "closeness", "eigenvector"), selected = "betweenness")),
+                column(4, tableOutput("statistics.circ"))
+      )),
       tabItem(tabName = "network_prediction",
               fluidRow(
                 column(9, uiOutput("introduction_pred")),
