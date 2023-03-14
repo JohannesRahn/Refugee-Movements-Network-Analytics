@@ -1,6 +1,5 @@
 source("global.R")
 
-
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   dt.aggregated.asylum <- aggregate_data()

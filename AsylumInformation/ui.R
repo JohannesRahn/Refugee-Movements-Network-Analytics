@@ -4,6 +4,7 @@ dt.asylum <- prepare_data()
 ui <- dashboardPage(
   dashboardHeader(
     title = "Asylum Analysis"
+    #, includeCSS("https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css")
     # ,tags$head(
     #   tags$link(list(rel = "stylesheet", type = "text/css", 
     #             href = "https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"))
@@ -22,12 +23,15 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
+    tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "www/custom.css")),
     tabItems(
       tabItem(tabName = "analysis",
               # Add graphs for descriptive analysis page
+              # Filter by income group
               fluidRow(
                 column(6, plotOutput("total.decisions.plot")),
-                column(6, plotOutput("recognized.decisions.plot")),
+                column(6, plotOutput("recognized.decisions.plot"))),
+              fluidRow(
                 column(6, plotOutput("rejected.decisions.plot")),
                 column(6, plotOutput("otherwise.closed.decisions.plot")),
                 column(6, plotOutput("total.closed.decisions.plot"))
@@ -38,10 +42,10 @@ ui <- dashboardPage(
               uiOutput("origin.selector"),
               uiOutput("asylum.selector"),
               uiOutput("asylum.income.selector"),
-              pickerInput("origin", "Country of origin", choices=unique(dt.asylum$Country.of.origin), options = list(actions_box = TRUE), selected=NULL, multiple=TRUE),
-              
-
-
+              pickerInput("origin", "Country of origin", 
+                          choices=unique(dt.asylum$Country.of.origin),
+                          options = list(actions_box = TRUE), 
+                          selected=NULL, multiple=TRUE),
 
       ),
       tabItem(tabName = "network_exploration"
@@ -53,6 +57,7 @@ ui <- dashboardPage(
     )
   )
 )
+
 
 # Run the app
 shinyApp(ui, server)

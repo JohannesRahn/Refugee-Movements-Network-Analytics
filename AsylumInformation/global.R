@@ -8,12 +8,11 @@ library(igraph)
 library(data.table)
 
 
-prepare_data <- function(country.of.origin = NULL, country.of.destination = NULL, 
-                         income.group.origin = NULL, income.group.asylum = NULL) {
+prepare_data <- function() {
   #TODO Save file
   
-  if (file.exists("asylum_data.RData")) {
-    load("asylum_data.RData")
+  if (file.exists("data/asylum_data.RData")) {
+    load("data/asylum_data.RData")
     
   } else {
     dt.asylum.data <- read.csv("data\\asylum-decisions.csv", header=TRUE, sep=";")
@@ -38,25 +37,41 @@ prepare_data <- function(country.of.origin = NULL, country.of.destination = NULL
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLatitude"] <- "Origin_Capital_Lat"
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Origin_Capital_Long"
     
-    save(dt.asylum.data, file="asylum_data.RData")
+    save(dt.asylum.data, file="data/asylum_data.RData")
     
-  }
-  # Filtering in case arguments to filters were passed in the method
-  if (!is.null(country.of.origin)) {
-    dt.asylum.data <- dt.asylum.data[dt.asylum.data$Country.of.origin == country.of.origin,]
-  }
-  if (!is.null(country.of.destination)) {
-    dt.asylum.data <- dt.asylum.data[dt.asylum.data$Country.of.asylum == country.of.destination,]
-  }
-  if (!is.null(income.group.origin)) {
-    dt.asylum.data <- dt.asylum.data[dt.asylum.data$Origin_Income == income.group.origin,]
-  }
-  if (!is.null(income.group.asylum)) {
-    dt.asylum.data <- dt.asylum.data[dt.asylum.data$Asylum_Income == income.group.asylum,]
   }
   # Return prepared data
   return(dt.asylum.data)
+}
 
+filter_data <- function(dt.filtered.data, country.of.origin = NULL, 
+            country.of.destination = NULL, income.group.origin = NULL, 
+            income.group.asylum = NULL, filter.unknowns = FALSE) {
+  
+  # Filtering in case arguments to filters were passed in the method
+  if (!is.null(country.of.origin)) {
+    dt.filtered.data <- dt.filtered.data[dt.filtered.data$Country.of.origin == country.of.origin,]
+  }
+  if (!is.null(country.of.destination)) {
+    dt.filtered.data <- dt.filtered.data[dt.filtered.data$Country.of.asylum == country.of.destination,]
+  }
+  if (!is.null(income.group.origin)) {
+    dt.filtered.data <- dt.filtered.data[dt.filtered.data$Origin_Income == income.group.origin,]
+  }
+  if (!is.null(income.group.asylum)) {
+    dt.filtered.data <- dt.filtered.data[dt.filtered.data$Asylum_Income == income.group.asylum,]
+  }
+  if (filter.unknowns) {
+    unknowns = list("Unknown", "Stateless")
+    dt.filtered.data <- dt.filtered.data[!(dt.filtered.data$Country.of.origin %in% unknowns),]
+    dt.filtered.data <- dt.filtered.data[!(dt.filtered.data$Country.of.asylum %in% unknowns),]
+  }
+  # Shows notification in case the data table does not have any rows
+  if (nrow(dt.filtered.data) == 0) {
+    showNotification("No data available for this filter.")
+  }
+  
+  return(dt.filtered.data)
 }
 
 aggregate_data <- function() {
