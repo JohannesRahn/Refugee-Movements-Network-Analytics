@@ -19,6 +19,7 @@ ui <- dashboardPage(
                icon = icon("chart-bar"))
       , menuItem("Network Characteristics", tabName = "characteristics", icon = icon("globe"))
       , menuItem("Network Exploration", tabName = "network_exploration", icon = icon("code"))
+      , menuItem("Network Prediction", tabName = "network_prediction", icon = icon("list-alt"))
       , menuItem("About", tabName = "about", icon = icon("info-circle"))
     )
   ),
@@ -65,16 +66,29 @@ ui <- dashboardPage(
                 column(9, visNetworkOutput("circular_plot")),
               ),
               fluidRow(
-                column(5, uiOutput("description_cen")),
-                column(5, tableOutput("betweenness")),
+                column(3, uiOutput("description_cen")),
+                column(9, tableOutput("betweenness")),
               ),
+      ),
+      tabItem(tabName = "network_prediction",
+              fluidRow(
+                column(9, uiOutput("introduction_pred")),
+              ),
+              fluidRow(
+                column(width = 9,
+                       leafletOutput("mymap_pred"),
+                )
+              ),
+              
       ),
       tabItem(tabName = "about"
               
       )
+    
     )
   )
 )
 
+
 # Run the app
-shinyApp(ui, server)
+shinyApp(ui = ui, server = server, options = list(height = 1080))

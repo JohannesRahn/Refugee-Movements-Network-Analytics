@@ -271,3 +271,106 @@ circular_graph <- function(year) {
     
     return(list(visnetwork_refugees, g_circle, countries_origin))}
   
+create_prediction_graph <- function() {
+  dt.asylum <- prepare_data()
+  
+  lon_lat <- function() {
+    location.vertices <- data.table(dt.asylum) 
+    location.origin <- location.vertices[, c("Country.of.origin", "Origin_Capital_Lat", "Origin_Capital_Long")]
+    location.origin <- rename(location.origin,c("name" = "Country.of.origin", "lat" = "Origin_Capital_Lat", "lon" = "Origin_Capital_Long"))
+    location.origin <- location.origin[, list(unique(location.origin), type = TRUE)]
+    
+    location.asylum <- location.vertices[, c("Country.of.asylum", "Asylum_Capital_Lat", "Asylum_Capital_Long")]
+    location.asylum <- rename(location.asylum,c("name" = "Country.of.asylum", "lat" = "Asylum_Capital_Lat", "lon" = "Asylum_Capital_Long"))
+    location.asylum <- location.asylum[, list(unique(location.asylum), type = FALSE)]
+    
+    all.locations <- rbind(location.origin, location.asylum)
+    all.locations <- all.locations[!duplicated(name)]
+    
+    all.locations$index <- seq_len(nrow(all.locations))
+    
+    return(all.locations)
+  }
+  
+  location.vertices <- lon_lat()
+  edges <- dt.asylum[, c("Country.of.origin", "Country.of.asylum")]
+  edges <- rename(edges, c("from" = "Country.of.origin", "to" = "Country.of.asylum"))
+  
+  # Match vertex names to indices in the vertex data frame
+  from_idx <- match(edges$from, location.vertices$name)
+  to_idx <- match(edges$to, location.vertices$name)
+  
+  # Create the graph
+  g <- graph.data.frame(edges, directed = TRUE, vertices = location.vertices)
+  g <- set_edge_attr(g, "weight", value= dt.asylum$Total.decisions + 0.001)
+  weights <- E(g)$weight
+  #plot(g)
+  
+  # Calculate the similarity between all pairs of nodes
+  similarity_matrix <- similarity.jaccard(g, mode = "in")
+  
+  # Set the diagonal to zero (because we don't want to predict self-loops)
+  diag(similarity_matrix) <- 0
+  
+  # Predict the top n edges with highest similarity that don't already exist
+  n <- 10
+  predicted_edges <- data.frame(as.matrix(which(similarity_matrix > 0, arr.ind = TRUE)))
+  colnames(predicted_edges) <- c("from", "to")
+  predicted_edges_weights <- similarity_matrix[as.matrix(predicted_edges)]
+  predicted_edges <- cbind(predicted_edges, predicted_edges_weights)
+  predicted_edges <- predicted_edges[order(-predicted_edges_weights), ]
+  predicted_edges <- predicted_edges[!(predicted_edges$from %in% edges$from &
+                                         predicted_edges$to %in% edges$to), ]
+  
+  vertex_lookup <- setNames(location.vertices$name, location.vertices$index)
+  predicted_edges$from <- vertex_lookup[predicted_edges$from]
+  predicted_edges$to <- vertex_lookup[predicted_edges$to]
+  
+  predicted_edges <- predicted_edges[(predicted_edges$from == "Germany"), ]
+  predicted_edges <- predicted_edges[1:n, 1:2]
+  
+  # Create a new directed graph with the predicted edges
+  g_predicted_edges <- graph_from_edgelist(as.matrix(predicted_edges), directed = TRUE)
+  E(g_predicted_edges)$weight <- predicted_edges_weights[1:n]
+  
+  # m.predicted.edges <- as.matrix(cocitation(graph_pred) * (1-get.adjacency(graph_pred)))
+  # g.predicted.edges <- graph_from_adjacency_matrix(m.predicted.edges,
+  #                                                  mode = "directed",
+  #                                                  weighted = TRUE)
+  # E(g.predicted.edges)$width <- E(g.predicted.edges)$weight * 2
+  # plot(g.predicted.edges)
+  
+  gg_pred <- get.data.frame(g_predicted_edges, "both")
+  gg_vert <- gg_pred$vertices$name
+  gg_vert_pred <- location.vertices[location.vertices$name %in% gg_vert, ]
+  gg_vert_pred <- gg_vert_pred[complete.cases(gg_vert_pred), ]
+  
+  coordinates(gg_vert_pred) <- ~lon+lat
+  
+  edges <- gg_pred$edges
+  edges <- edges[(edges$to %in% gg_vert_pred$name) & (edges$from %in% gg_vert_pred$name), ]
+  
+  # Loop through the columns of the edges data frame
+  edges_sp <- apply(edges, 1, function(row) {
+    from_vert <- gg_vert_pred[gg_vert_pred$name == row["from"], ]
+    to_vert <- gg_vert_pred[gg_vert_pred$name == row["to"], ]
+    
+    # Check if either vertex is missing, and skip this edge if so
+    if (nrow(from_vert) == 0 || nrow(to_vert) == 0) {
+      return(NULL)
+    }
+    
+    as(rbind(from_vert, to_vert), "SpatialLines")
+  })
+  
+  # Remove NULL values from edges list
+  edges_sp <- edges_sp[!sapply(edges_sp, is.null)]
+  
+  # Assign IDs to edges
+  edges_sp <- lapply(1:length(edges_sp), function(i) {
+    spChFIDs(edges_sp[[i]], as.character(i))
+  })
+  
+  edges_sp <- do.call(rbind, edges_sp)
+  return(list(graph = g_predicted_edges, vert = gg_vert_pred, edges = edges, edges_lines = edges_sp))
+}
