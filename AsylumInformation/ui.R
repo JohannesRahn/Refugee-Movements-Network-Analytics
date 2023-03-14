@@ -60,4 +60,4 @@ ui <- dashboardPage(
 
 
 # Run the app
-shinyApp(ui, server)
+shinyApp(ui = ui, server = server, options = list(height = 1080))
