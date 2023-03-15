@@ -64,6 +64,20 @@ prepare_data <- function() {
   return(dt.asylum.data)
 }
 
+aggregate_data <- function() {
+  #This function sums up all information for each year
+  dt.aggregated.asylum <- prepare_data() %>%
+    group_by(Year) %>%
+    summarise(Total_decisions = sum(Total.decisions),
+              Recognized_decisions = sum(Recognized.decisions),
+              Rejected_decisions = sum(Rejected.decisions),
+              Otherwise_closed = sum(Otherwise.closed),
+              # Calculate all closed cases
+              Total_closed = sum(Rejected_decisions) + sum(Otherwise.closed),
+              Complementary_protection = sum(Complementary.protection))
+  
+  return(dt.aggregated.asylum)
+}
 
 create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   dt.asylum <- prepare_data()
