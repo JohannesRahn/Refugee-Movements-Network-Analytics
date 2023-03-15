@@ -6,11 +6,11 @@ server <- function(input, output, session) {
   dt.aggregated.asylum <- aggregate_data()
   dt.asylum <- prepare_data()
   g = graph.data.frame(dt.asylum, directed=TRUE)
+  descriptives.reac <- descriptives()
   
   
   # Reactive element to change origin and asylum column as character
   dt.asylum.st <- reactive({
-    source("global.R")
     dt <- prepare_data()
     dt$Country.of.origin <- as.character(dt$Country.of.origin)
     dt$Country.of.asylum <- as.character(dt$Country.of.asylum)
@@ -25,94 +25,51 @@ server <- function(input, output, session) {
     return(circular_plot)
   })  
   
-  # Reactive element for rejections
-  rejections <- reactive({
-    df.top.rejection <- dt.asylum %>%
-      group_by(Country.of.asylum) %>%
-      summarize(total.decisions = sum(Total.decisions),
-                total.rejections = sum(Rejected.decisions),
-                rejection.rate = sum(Rejected.decisions) / sum(Total.decisions))
-    return(rejections)
+  
+  # Introduction for Descriptive section
+  output$introduction_descriptives <- renderText({
+    HTML(paste("<h1 style='color:green;'>", "Descriptive Statistics", "</h1>", "<br>"))
   })
   
   # Bar chart top 5 asylum countries
   output$total.asylum <- renderPlot({
-    df.top.asylum <- rejections #get from reactive element
-    
-    # sort df and get top 5 country asylum
-    df.top.asylum.5 <- df.top.asylum %>%
-      arrange(desc(total.decisions)) %>%
-      top_n(5, total.decisions)
-    
-    # create bar chart for top 5 country asylum
-    ggplot(df.top.asylum.5, aes(x = reorder(Country.of.asylum, -total.decisions), y = total.decisions)) +
-      geom_bar(stat = "identity", fill = "blue") +
-      labs(x = "Country of Asylum", y = "Total Decisions") +
-      ggtitle("Top 5 Countries of Asylum by Total Decisions in 2022") +
-      theme(panel.grid.major = element_blank(), # Remove major grid lines
-            panel.grid.minor = element_blank()) # Remove minor grid lines
+    plot.bar1 <- descriptives.reac[[1]]
+    plot.bar1
   })
+  
   
   # Bar chart top 5 origin countries
   output$total.origin <- renderPlot({
-    
-    # create df with country asylum and their total decisions
-    df.top.origin <- dt.asylum %>%
-      # filter(Year == 2022) %>% # build region filter
-      group_by(Country.of.origin) %>%
-      summarize(total.decisions = sum(Total.decisions))
-    
-    # sort df and get top 5 country origin
-    df.top.origin.5 <- df.top.origin %>%
-      arrange(desc(total.decisions)) %>%
-      top_n(5, total.decisions)
-    
-    # create bar chart for top 5 country asylum
-    ggplot(df.top.origin.5, aes(x = reorder(Country.of.asylum, -total.decisions), y = total.decisions)) +
-      geom_bar(stat = "identity", fill = "green") +
-      labs(x = "Country of Origin", y = "Total Decisions") +
-      ggtitle("Top 5 Countries of Asylum by Total Decisions in 2022") +
-      theme(panel.grid.major = element_blank(), # Remove major grid lines
-            panel.grid.minor = element_blank()) # Remove minor grid lines
+    plot.bar2 <- descriptives.reac[[2]]
+    plot.bar2
   })
   
-  # Bar chart top 15 countries by rejection
+  # Bar chart top 5 countries by rejection
   output$total.rejection <- renderPlot({
-    # get from reactive element
-    rejections <- rejections
-    
-    # sort df and get top 5 countries with highest rejections
-    df.top.rejection5 <- rejections %>%
-      arrange(desc(total.rejections)) %>%
-      top_n(5, total.rejections)
-    
-    # create bar chart for top 5 country asylum
-    ggplot(df.top.rejection5, aes(x = reorder(Country.of.asylum, -total.rejections), y = total.rejections)) +
-      geom_bar(stat = "identity", fill = "yellow") +
-      labs(x = "Country with highest absolute rejections", y = "Total Rejections") +
-      ggtitle("Top 5 Countries with highest rejections") +
-      theme(panel.grid.major = element_blank(), # Remove major grid lines
-            panel.grid.minor = element_blank()) # Remove minor grid lines
+    plot.bar3 <- descriptives.reac[[3]]
+    plot.bar3
   })
   
+
   # Bar chart with top 5 countries rejection rate
   output$total.rejection.rate <- renderPlot({
-    # get from reactive element
-    rejections <- rejections
-    
-    # sort df and get top 5 countries with highest rejections
-    df.top.rejection.rate5 <- rejections %>%
-      arrange(desc(rejection.rate)) %>%
-      top_n(5, rejection.rate)
-    
-    # create bar chart for top 5 country asylum
-    ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), y = rejection.rate)) +
-      geom_bar(stat = "identity", fill = "red") +
-      labs(x = "Country with highest rejection rate", y = "Rejection rate") +
-      ggtitle("Top 5 Countries with highest rejection rate") +
-      theme(panel.grid.major = element_blank(), # Remove major grid lines
-            panel.grid.minor = element_blank()) # Remove minor grid lines
+    plot.bar4 <- descriptives.reac[[4]]
+    plot.bar4
   })
+  
+  
+  # Pie chart with total decisions by income level
+  output$decisions.by.income <- renderPlot({
+    pie1 <- descriptives.reac[[5]]
+    pie1
+  })
+  
+  # World map with rejection rate
+  output$rejections.map <- renderLeaflet({
+    world.map <- descriptives.reac[[6]]
+    world.map
+  })
+  
   
   # Total Asylum Decisions per Year plot
   output$total.decisions.plot <- renderPlot({
@@ -288,6 +245,11 @@ server <- function(input, output, session) {
       addProviderTiles(providers$CartoDB.Voyager) %>% 
       addCircleMarkers() %>% 
       addPolylines(data = edges_lines, weight = 1)
+  })
+  
+  # Introduction for About section
+  output$about <- renderText({
+    HTML(paste("<h1 style='color:blue;'>", "About what we do", "</h1>", "<br>"))
   })
   
  

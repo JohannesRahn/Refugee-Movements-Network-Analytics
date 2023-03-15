@@ -16,70 +16,55 @@ library(visNetwork)
 prepare_data <- function() {
   #TODO Save file
   
-  if (file.exists("asylum_data.RData")) {
-    load("asylum_data.RData")
+  if (file.exists("data/asylum_data.RData")) {
+    load("data/asylum_data.RData")
     
   } else {
     dt.asylum.data <- read.csv("data\\asylum-decisions.csv", header=TRUE, sep=";")
     dt.country.income <- read.csv("data\\income_data.csv", header=TRUE)
     dt.country.capitals <- read.csv("data\\concap.csv", header=TRUE)
-    dt.country.info.merge <- merge(dt.country.income, dt.country.capitals, by.x= "Country", 
-                                   by.y = "CountryName")
+    dt.country.meta.info <- read.csv("data\\country_region.csv", header=TRUE)
+    
+    dt.country.info.merge <- merge(dt.country.income, dt.country.meta.info, by.x= "Code", 
+                                   by.y = "alpha.3")
+    dt.country.info.merge <- merge(dt.country.info.merge, dt.country.capitals, by.x= "alpha.2", by.y="CountryCode")
     
     # Merge for Asylum Information
-    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.asylum", by.y="Country", all.x=TRUE)
+    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.origin..ISO.", by.y="Code", all.x = TRUE)
     # renaming column
     names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Asylum_Income"
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Asylum_Capital"
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLatitude"] <- "Asylum_Capital_Lat"
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Asylum_Capital_Long"
+    names(dt.asylum.data)[names(dt.asylum.data)=="region"] <- "Asylum_Region"
+    names(dt.asylum.data)[names(dt.asylum.data)=="sub.region"] <- "Asylum_Sub_Region"
+    names(dt.asylum.data)[names(dt.asylum.data)=="ContinentName"] <- "Asylum_Continent"
+    
     
     # Merge for Origin Information
-    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.origin", by.y="Country", all.x=TRUE)
+    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.asylum..ISO.", by.y="Code", all.x = TRUE)
     # renaming columns
     names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Origin_Income"
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Origin_Capital"
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLatitude"] <- "Origin_Capital_Lat"
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Origin_Capital_Long"
+    names(dt.asylum.data)[names(dt.asylum.data)=="region"] <- "Origin_Region"
+    names(dt.asylum.data)[names(dt.asylum.data)=="sub.region"] <- "Origin_Sub_Region"
+    names(dt.asylum.data)[names(dt.asylum.data)=="ContinentName"] <- "Origin_Continent"
     
-    save(dt.asylum.data, file="asylum_data.RData")
+    col.order <- c("Country.of.origin", "Country.of.asylum", "Year", "Country.of.origin..ISO.", "Country.of.asylum..ISO.", "Authority", "Stage.of.procedure", "Cases...Persons", "Recognized.decisions", "Complementary.protection", "Rejected.decisions", "Otherwise.closed", "Total.decisions", "Asylum_Income", "Asylum_Capital", "Asylum_Capital_Lat", "Asylum_Capital_Long", "Origin_Income", "Origin_Capital", "Origin_Capital_Lat", "Origin_Capital_Long", "Asylum_Region", "Asylum_Sub_Region", "Asylum_Continent", "Origin_Region", "Origin_Sub_Region", "Origin_Continent", "alpha.2.y", "alpha.2.x")
+    
+    dt.asylum.data <- dt.asylum.data[, col.order]
+    
+    save(dt.asylum.data, file="data/asylum_data.RData")
+    
     
   }
   # Return prepared data
   return(dt.asylum.data)
-
 }
 
-aggregate_data <- function() {
-  #This function sums up all information for each year
-  dt.aggregated.asylum <- prepare_data() %>%
-    group_by(Year) %>%
-    summarise(Total_decisions = sum(Total.decisions),
-              Recognized_decisions = sum(Recognized.decisions),
-              Rejected_decisions = sum(Rejected.decisions),
-              Otherwise_closed = sum(Otherwise.closed),
-              # Calculate all closed cases
-              Total_closed = sum(Rejected_decisions) + sum(Otherwise.closed),
-              Complementary_protection = sum(Complementary.protection))
-  
-  return(dt.aggregated.asylum)
-}
-# Group by nach Land und Jahr, da manche Rows doppelt
 
-# Header bauen
-######################
-
-# Add a new column with the sum of total decisions by country of origin
-#Country of asylum sums
-dt.asylum <- prepare_data()
-# assuming your dataframe is named 'df'
-df_filtered <- dt.asylum %>%
-  filter(Year == 2022) %>% # replace 2022 with the desired year
-  group_by(Country.of.asylum) %>%
-  summarize(total.decisions = sum(Total.decisions))
-
-
-######################
 create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   dt.asylum <- prepare_data()
   dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.origin == country & dt.asylum$Year == Year_input, ])
@@ -413,4 +398,119 @@ create_prediction_graph <- function() {
   
   edges_sp <- do.call(rbind, edges_sp)
   return(list(graph = g_predicted_edges, vert = gg_vert_pred, edges = edges, edges_lines = edges_sp))
+}
+
+preparation_rejections <- function(){
+  dt.asylum <- prepare_data()
+  df.top.rejection <- dt.asylum %>%
+    group_by(Country.of.asylum) %>%
+    summarize(total.decisions = sum(Total.decisions),
+              total.rejections = sum(Rejected.decisions),
+              rejection.rate = sum(Rejected.decisions) / sum(Total.decisions),
+              asylum_lat = first(Asylum_Capital_Lat),
+              asylum_long = first(Asylum_Capital_Long))
+  return(list(df.top.rejection, dt.asylum))
+}
+
+descriptives <- function() {
+  rejections <- preparation_rejections()[[1]]
+  dt.asylum <- preparation_rejections()[[2]]
+
+  ##### top 10 country asylum
+  # sort df and get top 5 country asylum
+  df.top.asylum.5 <- rejections %>%
+    arrange(desc(total.decisions)) %>%
+    top_n(5, total.decisions)
+  
+  # create bar chart for top 5 country asylum
+  p1 <- ggplot(df.top.asylum.5, aes(x = reorder(Country.of.asylum, -total.decisions), y = total.decisions)) +
+    geom_bar(stat = "identity", fill = "blue") +
+    labs(x = "Country of Asylum", y = "Total Decisions") +
+    ggtitle("Top 5 Countries of Asylum by Total Decisions in 2022") +
+    theme(panel.grid.major = element_blank(), # Remove major grid lines
+          panel.grid.minor = element_blank()) # Remove minor grid lines
+  
+  
+  ##### top 5 countries of origin
+  # create df with country asylum and their total decisions
+  df.top.origin <- dt.asylum %>%
+    # filter(Year == 2022) %>% # build region filter
+    group_by(Country.of.origin) %>%
+    summarize(total.decisions = sum(Total.decisions))
+  
+  # sort df and get top 5 country origin
+  df.top.origin.5 <- df.top.origin %>%
+    arrange(desc(total.decisions)) %>%
+    top_n(5, total.decisions)
+  
+  # create bar chart for top 5 country asylum
+  p2 <- ggplot(df.top.origin.5, aes(x = reorder(Country.of.origin, -total.decisions), y = total.decisions)) +
+    geom_bar(stat = "identity", fill = "green") +
+    labs(x = "Country of Origin", y = "Total Decisions") +
+    ggtitle("Top 5 Countries of Asylum by Total Decisions in 2022") +
+    theme(panel.grid.major = element_blank(), # Remove major grid lines
+          panel.grid.minor = element_blank()) # Remove minor grid lines
+  
+  
+  ##### top 5 countries highest rejection 
+  # sort df and get top 5 countries with highest rejections
+  df.top.rejection5 <- rejections %>%
+    arrange(desc(total.rejections)) %>%
+    top_n(5, total.rejections)
+  
+  # create bar chart for top 5 country asylum
+  p3 <- ggplot(df.top.rejection5, aes(x = reorder(Country.of.asylum, -total.rejections), y = total.rejections)) +
+    geom_bar(stat = "identity", fill = "yellow") +
+    labs(x = "Country with highest absolute rejections", y = "Total Rejections") +
+    ggtitle("Top 5 Countries with highest rejections") +
+    theme(panel.grid.major = element_blank(), # Remove major grid lines
+          panel.grid.minor = element_blank()) # Remove minor grid lines
+  
+  ###### top 5 countries by rejection rate
+  # sort df and get top 5 countries with highest rejections
+  df.top.rejection.rate5 <- rejections %>%
+    arrange(desc(rejection.rate)) %>%
+    top_n(5, rejection.rate)
+  
+  # create bar chart for top 5 country asylum
+  p4 <- ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), y = rejection.rate)) +
+    geom_bar(stat = "identity", fill = "red") +
+    labs(x = "Country with highest rejection rate", y = "Rejection rate") +
+    ggtitle("Top 5 Countries with highest rejection rate") +
+    theme(panel.grid.major = element_blank(), # Remove major grid lines
+          panel.grid.minor = element_blank()) # Remove minor grid lines
+  
+  
+  ##### pie chart with total decisions by income level
+  income_levels <- dt.asylum %>%
+    group_by(Asylum_Income) %>%
+    summarize(total_decisions = sum(Total.decisions))
+  
+  # Create a pie chart
+  p5 <- ggplot(income_levels, aes(x="", y=total_decisions, fill=Asylum_Income)) +
+    geom_bar(stat="identity", width=1) +
+    coord_polar("y", start=0) +
+    labs(fill="Income Level", x=NULL, y=NULL, title="Total Decisions by Income Level") +
+    theme_void() +
+    geom_text(aes(label=scales::percent(total_decisions/sum(total_decisions))), 
+              position=position_stack(vjust=0.5), size=4)
+  
+  
+  # Call reactive element
+  df.rejections.map <- rejections
+  pal <- colorNumeric(palette = "Blues", domain = df.rejections.map$rejection.rate)
+  
+  # Create map with rejection rate
+  map <- leaflet(data = df.rejections.map) %>%
+    addTiles() %>%
+    addCircleMarkers(lng = ~asylum_long, lat = ~asylum_lat,
+                     color = ~pal(rejection.rate), fillOpacity = 10,
+                     radius = 10,
+                     popup = ~paste(Country.of.asylum, "<br>",
+                                    "Rejection Rate: ", round((rejection.rate * 100), 1), "%")) %>%
+    addLegend(pal = pal, values = df.rejections.map$rejection.rate,
+              title = "Rejection Rate", position = "bottomright")
+  
+  
+  return(list(p1, p2, p3, p4, p5, map))
 }
