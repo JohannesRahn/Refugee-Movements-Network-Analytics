@@ -20,17 +20,17 @@ prepare_data <- function() {
     load("data/asylum_data.RData")
     
   } else {
-    dt.asylum.data <- read.csv("data\\asylum-decisions.csv", header=TRUE, sep=";")
-    dt.country.income <- read.csv("data\\income_data.csv", header=TRUE)
-    dt.country.capitals <- read.csv("data\\concap.csv", header=TRUE)
-    dt.country.meta.info <- read.csv("data\\country_region.csv", header=TRUE)
+    dt.asylum.data <- read.csv("data/asylum-decisions.csv", header=TRUE, sep=";")
+    dt.country.income <- read.csv("data/income_data.csv", header=TRUE)
+    dt.country.capitals <- read.csv("data/concap.csv", header=TRUE)
+    dt.country.meta.info <- read.csv("data/country_region.csv", header=TRUE)
     
     dt.country.info.merge <- merge(dt.country.income, dt.country.meta.info, by.x= "Code", 
                                    by.y = "alpha.3")
     dt.country.info.merge <- merge(dt.country.info.merge, dt.country.capitals, by.x= "alpha.2", by.y="CountryCode")
     
     # Merge for Asylum Information
-    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.origin..ISO.", by.y="Code", all.x = TRUE)
+    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.asylum..ISO.", by.y="Code", all.x = TRUE)
     # renaming column
     names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Asylum_Income"
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Asylum_Capital"
@@ -42,7 +42,7 @@ prepare_data <- function() {
     
     
     # Merge for Origin Information
-    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.asylum..ISO.", by.y="Code", all.x = TRUE)
+    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.origin..ISO.", by.y="Code", all.x = TRUE)
     # renaming columns
     names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Origin_Income"
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Origin_Capital"
@@ -82,6 +82,9 @@ aggregate_data <- function() {
 create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   dt.asylum <- prepare_data()
   dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.origin == country & dt.asylum$Year == Year_input, ])
+  dt.asylum.filtered <- dt.asylum.filtered[!(dt.asylum.filtered$Country.of.origin == "Unknown" | dt.asylum.filtered$Country.of.asylum == "Unknown"), ]
+  
+  
   
   
   lon_lat <- function() {
@@ -142,6 +145,7 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   gg <- lapply(gg, function(df) df[complete.cases(df), ])
   
   vert <- gg$vertices
+  vert <- vert[complete.cases(vert), ]
   coordinates(vert) <- ~lon+lat
   
   edges <- gg$edges
