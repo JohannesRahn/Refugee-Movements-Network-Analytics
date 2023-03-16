@@ -122,7 +122,7 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
     weights <- E(g)$weight
     plot(g)
     
-  # There is a chosen income level
+    # There is a chosen income level
   } else {
     # Create a new vertex attribute indicating whether the vertex should be included in the income filter
     filtered_vertices <- subset(location.vertices, income %in% c(income_level) | type)
@@ -152,7 +152,7 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   coordinates(vert) <- ~lon+lat
   
   edges <- gg$edges
-
+  
   # Loop through the columns of the edges data frame
   edges_sp <- apply(edges, 1, function(row) {
     from_vert <- vert[vert$name == row["from"], ]
@@ -175,13 +175,13 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   })
   
   edges_sp <- do.call(rbind, edges_sp)
-
+  
   return(list(graph = g, vert = vert, edges = edges, edges_lines = edges_sp))
 }
 
 circular_graph <- function(year) {
   dt.asylum <- prepare_data()
-
+  
   origin_2015 <- data.frame(dt.asylum %>%
                               subset(Year == year) %>%
                               group_by(Country.of.origin, Year) %>%
@@ -237,17 +237,17 @@ circular_graph <- function(year) {
   node_2015[is.na(node_2015)] <- 0
   
   node_2015$group <-  ifelse(node_2015$Origin_total == 0 & node_2015$Country_total >0, "Asylum Country", 
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total == 0, "Refugee Country",
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 100, "Mainly Refugee Country",
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 10, "Dual Flow Country",
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Country_total/node_2015$Origin_total > 100, "Mainly Asylum Country", "Dual Flow Country")))))
+                             ifelse(node_2015$Origin_total > 0 & node_2015$Country_total == 0, "Refugee Country",
+                                    ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 100, "Mainly Refugee Country",
+                                           ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 10, "Dual Flow Country",
+                                                  ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Country_total/node_2015$Origin_total > 100, "Mainly Asylum Country", "Dual Flow Country")))))
   
   node_2015$value <-  ifelse(node_2015$Origin_total > node_2015$Country_total, node_2015$Origin_total, node_2015$Country_total)
   node_2015$color <-  ifelse(node_2015$Origin_total == 0 & node_2015$Country_total >0, "#80CBC4",
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total == 0, "#EF9A9A",
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 100, "#FFE082",
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 10, "#FFF59D",
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Country_total/node_2015$Origin_total > 100, "#B2DFDB", "#FFF59D")))))
+                             ifelse(node_2015$Origin_total > 0 & node_2015$Country_total == 0, "#EF9A9A",
+                                    ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 100, "#FFE082",
+                                           ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 10, "#FFF59D",
+                                                  ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Country_total/node_2015$Origin_total > 100, "#B2DFDB", "#FFF59D")))))
   node_2015$title <- paste0("<p>",node_2015$Country," ", year, ":","<br>",
                             "Refugees to ",node_2015$Country,": ",
                             node_2015$Country_total,"<br>",
@@ -255,10 +255,10 @@ circular_graph <- function(year) {
                             ":",node_2015$Origin_total,"</p>", sep="")
   node_2015$shadow <- FALSE
   node_2015$shape <- ifelse(node_2015$Origin_total == 0 & node_2015$Country_total >0, "dot",
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total == 0, "triangle",
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 100, "triangle",
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 10, "square",
-                      ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Country_total/node_2015$Origin_total > 100, "dot", "square")))))
+                            ifelse(node_2015$Origin_total > 0 & node_2015$Country_total == 0, "triangle",
+                                   ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 100, "triangle",
+                                          ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Origin_total/node_2015$Country_total > 10, "square",
+                                                 ifelse(node_2015$Origin_total > 0 & node_2015$Country_total > 0 & node_2015$Country_total/node_2015$Origin_total > 100, "dot", "square")))))
   
   
   node_2015_2 <- node_2015[,c(4, 1, 5, 6, 10, 8, 7, 9)]
@@ -279,18 +279,18 @@ circular_graph <- function(year) {
   
   # create an igraph network
   g.circ <- graph_from_data_frame(edge_2015_2, directed = TRUE, vertices = node_2015_2)
-
+  
   # create the same graph with visNetwork for better visualization
   visnetwork_refugees <- visNetwork(node_2015_2, edge_2015_2, width = "100%", height = "600px") %>%
     visOptions(nodesIdSelection = TRUE, selectedBy = "group", highlightNearest = list(enabled = TRUE, degree = 1)) %>% 
     visEdges(physics = FALSE, arrows =list(to = list(enabled = TRUE, scaleFactor = 0.5))) %>% 
     visIgraphLayout(type = "full", layout = "layout_in_circle") %>% 
     visInteraction(hover = TRUE, navigationButtons = TRUE) #%>% 
-    visnetwork_refugees
-    
+  visnetwork_refugees
+  
   V(g.circ)$label
-
-
+  
+  
   # Execute the closeness function within the new environment
   bet <- betweenness(g.circ)
   eigen <- evcent(g.circ)$vector
@@ -314,9 +314,9 @@ circular_graph <- function(year) {
     Country_Closeness  = df.close.ordered$country,
     Closeness = format(round(df.close.ordered$closeness, 4))
   )
-    
-  return(list(visnetwork_refugees, g.circ, df.merged, df))}
   
+  return(list(visnetwork_refugees, g.circ, df.merged, df))}
+
 create_prediction_graph <- function() {
   dt.asylum <- prepare_data()
   
@@ -436,7 +436,7 @@ preparation_rejections <- function(){
 descriptives <- function() {
   rejections <- preparation_rejections()[[1]]
   dt.asylum <- preparation_rejections()[[2]]
-
+  
   ##### top 10 country asylum
   # sort df and get top 5 country asylum
   df.top.asylum.5 <- rejections %>%
@@ -444,15 +444,17 @@ descriptives <- function() {
     top_n(5, total.decisions)
   
   # create bar chart for top 5 country asylum
+  library(RColorBrewer)
+  library(ggimage)
+  library(png)
   
   
-  color_palette <- brewer.pal(n = 5, name = "PuBuGn")
-  image_files <- list(
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Project/New Project/NetworkAnalyticsProject/AsylumInformation/data/Flags/ad.png", 
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png"
+  image_files <- c(
+    "data/Flags/de.png", 
+    "data/Flags/us.png", 
+    "data/Flags/fr.png", 
+    "data/Flags/gb.png", 
+    "data/Flags/za.png"
   )
   
   # Create a new column in the data frame with the image file paths
@@ -468,17 +470,19 @@ descriptives <- function() {
   # Read the images from file and convert them to grobs
   images <- lapply(image_files, read_image)
   
-  # Add the images to the plot using geom_image()
+  # Convert the column to a vector before passing it to reorder()
+  df.top.asylum.5$Country.of.asylum <- unlist(df.top.asylum.5$Country.of.asylum)
   
+  # Create the plot with images
   p1 <- ggplot(df.top.asylum.5, aes(x = reorder(Country.of.asylum, -total.decisions), y = total.decisions, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_file), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_files), size = 0.08) +
     geom_text(aes(label = paste0(round(total.decisions/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
     labs(x = "Countries of Asylum", y = "Total Decisions (in millions)") + # Remove x-axis label
     ggtitle("Top 5 Countries of Asylum by Total Decisions in 2022") +
     scale_fill_manual(values = color_palette) + # Use the defined color palette
     theme_minimal() +
-    theme(plot.title = element_text(size = 16, face = "bold", hjust = +0.5), # Increase font size of title
+    theme(plot.title = element_text(size = 16, face = "bold", hjust = 0), # Increase font size of title
           axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
           axis.text = element_text(size = 12), # Increase font size of tick labels
           panel.grid.major = element_blank(), # Remove major grid lines
@@ -509,16 +513,16 @@ descriptives <- function() {
   
   
   color_palette <- brewer.pal(n = 5, name = "PuBuGn")
-  image_files <- list(
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png"
+  image_files2 <- c(
+    "data/Flags/un.png", 
+    "data/Flags/af.png", 
+    "data/Flags/sy.png", 
+    "data/Flags/iq.png", 
+    "data/Flags/rs.png"
   )
   
   # Create a new column in the data frame with the image file paths
-  df.top.origin.5$image_file <- image_files
+  df.top.origin.5$image_file <- image_files2
   
   # Define a function to read the images from file and convert them to grobs
   read_image <- function(file) {
@@ -528,28 +532,30 @@ descriptives <- function() {
   }
   
   # Read the images from file and convert them to grobs
-  images <- lapply(image_files, read_image)
+  images <- lapply(image_files2, read_image)
   
-  # Add the images to the plot using geom_image()
-  p2 <- ggplot(df.top.origin.5, aes(x = reorder(Country.of.origin, -total.decisions), y = total.decisions/1e6, fill = Country.of.origin)) +
+  # Convert the column to a vector before passing it to reorder()
+  df.top.origin.5$Country.of.origin <- unlist(df.top.origin.5$Country.of.origin)
+  
+  # Create the plot with images
+  p2 <- ggplot(df.top.origin.5, aes(x = reorder(Country.of.origin, -total.decisions), y = total.decisions, fill = Country.of.origin)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.origin, y = -1, image = image_files), size = 0.08) +
-    geom_text(aes(label = paste0(round(total.decisions/1e6, 1), "M")), vjust = -0.5, size = 4) +
-    labs(x = "Countries of Origin", y = "Total Decisions (in millions)") +
-    ggtitle("Top 5 Countries of Origin by Total Decisions in 2022") +
-    scale_fill_manual(values = color_palette) +
+    ggimage::geom_image(aes(x = Country.of.origin, y = -1, image = image_files2), size = 0.08) +
+    geom_text(aes(label = paste0(round(total.decisions/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
+    labs(x = "Countries of Asylum", y = "Total Decisions (in millions)") + # Remove x-axis label
+    ggtitle("Top 5 Countries of Asylum by Total Decisions in 2022") +
+    scale_fill_manual(values = color_palette) + # Use the defined color palette
     theme_minimal() +
-    theme(plot.title = element_text(size = 16, face = "bold", hjust = +0.5),
-          axis.title = element_text(size = 14, face = "bold"),
-          axis.text = element_text(size = 12),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank(),
-          axis.line.y = element_blank(),
-          axis.ticks.y = element_blank(),
-          axis.text.y = element_blank(),
-          axis.text.x = element_blank(),
-          plot.margin = unit(c(1, 1, 1, 3), "lines"))
-  
+    theme(plot.title = element_text(size = 16, face = "bold", hjust = 0), # Increase font size of title
+          axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
+          axis.text = element_text(size = 12), # Increase font size of tick labels
+          panel.grid.major = element_blank(), # Remove major grid lines
+          panel.grid.minor = element_blank(), # Remove minor grid lines
+          axis.line.y = element_blank(), # Remove y-axis line
+          axis.ticks.y = element_blank(), # Remove y-axis ticks
+          axis.text.y = element_blank(), # Remove y-axis tick labels
+          axis.text.x = element_blank(), # Remove x-axis tick labels
+          plot.margin = unit(c(1, 1, 1, 3), "lines")) # Add space on the right for x-axis labels
   
   
   
@@ -561,16 +567,16 @@ descriptives <- function() {
   
   # create bar chart for top 5 country asylum
   # Define a list of local file paths corresponding to the countries in the plot
-  image_files <- list(
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png",
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png",
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png",
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png",
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png"
+  image_files3 <- c(
+    "data/Flags/fr.png", 
+    "data/Flags/de.png", 
+    "data/Flags/gb.png", 
+    "data/Flags/us.png", 
+    "data/Flags/za.png"
   )
   
   # Create a new column in the data frame with the image file paths
-  df.top.rejection5$image_file <- image_files
+  df.top.rejection5$image_file <- image_files3
   
   # Define a function to read the images from file and convert them to grobs
   read_image <- function(file) {
@@ -580,11 +586,11 @@ descriptives <- function() {
   }
   
   # Read the images from file and convert them to grobs
-  images <- lapply(image_files, read_image)
+  images <- lapply(image_files3, read_image)
   
   p3 <- ggplot(df.top.rejection5, aes(x = reorder(Country.of.asylum, -total.rejections), y = total.rejections, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_file), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_files3), size = 0.08) +
     geom_text(aes(label = paste0(round(total.rejections/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
     labs(x = "Country with highest absolute rejections", y = "Total Rejections (in millions)") +
     ggtitle("Top 5 Countries with highest rejections") +
@@ -608,12 +614,19 @@ descriptives <- function() {
     arrange(desc(rejection.rate)) %>%
     top_n(5, rejection.rate)
   
-  # create bar chart for top 5 country asylum
+  image_files4 <- c(
+    "data/Flags/aw.png", 
+    "data/Flags/fm.png", 
+    "data/Flags/bs.png", 
+    "data/Flags/jp.png", 
+    "data/Flags/ky.png"
+  )
+  
   # Create a new column in the data frame with the image file paths
-  df.top.rejection.rate5$image_file <- image_files
+  df.top.rejection.rate5$image_file <- image_files4
   
   # Read the images from file and convert them to grobs
-  images <- lapply(image_files, read_image)
+  images <- lapply(image_files4, read_image)
   
   # Add the images to the plot using geom_image()
   p4 <- ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), y = rejection.rate, fill = Country.of.asylum)) +
@@ -638,24 +651,29 @@ descriptives <- function() {
   
   
   
+  
   ##### pie chart with total decisions by income level
   income_levels <- dt.asylum %>%
     group_by(Asylum_Income) %>%
     summarize(total_decisions = sum(Total.decisions))
   
   # Create a pie chart
-  p5 <- ggplot(income_levels, aes(x="", y=total_decisions, fill=Asylum_Income)) +
+  income_levels_filtered <- income_levels[income_levels$Asylum_Income %in% c("High income", "Low income", "Lower middle income", "Upper middle income"), ]
+  
+  p5 <- ggplot(income_levels_filtered, aes(x="", y=total_decisions, fill=Asylum_Income)) +
     geom_bar(stat="identity", width=1) +
     coord_polar("y", start=0) +
     labs(fill="Income Level", x=NULL, y=NULL, title="Total Decisions by Income Level") +
     theme_void() +
-    geom_text(aes(label=scales::percent(total_decisions/sum(total_decisions))), 
+    geom_text(aes(label=paste0(round(total_decisions/sum(total_decisions)*100),"%")), 
               position=position_stack(vjust=0.5), size=4) +
     scale_fill_manual(values = color_palette) + # Use the defined color palette
     theme(plot.title = element_text(size = 16, face = "bold", hjust = +0.5), # Increase font size of title
           axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
-          axis.text = element_text(size = 12), # Increase font size of tick labels
+          axis.text = element_blank(), # Remove axis tick labels
           plot.margin = unit(c(1, 1, 1, 1), "lines")) # Add space around the plot
+  
+  
   
   
   
