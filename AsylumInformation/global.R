@@ -130,12 +130,15 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
     # Include in the filtered_edges just the filtered vertices
     filtered_edges <- subset(edges, from %in% filtered_vertices_vec & to %in% filtered_vertices_vec)
     # Some asylum countries are doubled so take unique values only
+    filtered_edges_idx <- match(paste(filtered_edges$from, filtered_edges$to), paste(edges$from, edges$to))
+    filtered_decisions <- dt.asylum.filtered$Total.decisions[filtered_edges_idx]
+    
     unique_filtered_edges <- unique(filtered_edges)
     edges <- unique_filtered_edges
     
-    # Create for income filtered graph
-    g <- graph.data.frame(edges, directed = TRUE, vertices = filtered_vertices)
-    
+    g <- graph.data.frame(filtered_edges, directed = TRUE, vertices = filtered_vertices)
+    g <- set_edge_attr(g, "weight", value = filtered_decisions + 0.001)
+    weights <- E(g)$weight
     
     # Plot the filtered graph
     plot(g)

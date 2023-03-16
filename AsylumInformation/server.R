@@ -148,10 +148,8 @@ server <- function(input, output, session) {
     
     edges_df <- SpatialLinesDataFrame(edges_lines, edges)
     
-    pal <- colorQuantile(palette = "YlOrRd", domain = unique(edges$weight), n = 10)
-    # Calculate quantiles and create labels
-    quantiles <- quantile(edges$weight, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
-    
+    pal <- colorNumeric(palette = "YlGn", domain = unique(edges$weight), n = 10)
+
     leaflet(vert) %>% 
       addProviderTiles(providers$CartoDB.Voyager) %>% 
       addCircleMarkers() %>% 
