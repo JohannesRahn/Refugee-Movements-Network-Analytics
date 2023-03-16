@@ -12,7 +12,9 @@ library(circlize)
 library(networkD3)
 library(visNetwork)
 library(grid)
-
+library(RColorBrewer)
+library(ggimage)
+library(png)
 
 prepare_data <- function() {
   #TODO Save file
@@ -442,16 +444,13 @@ descriptives <- function() {
     top_n(5, total.decisions)
   
   # create bar chart for top 5 country asylum
-  library(RColorBrewer)
-  library(ggimage)
-  library(png)
   
   
   color_palette <- brewer.pal(n = 5, name = "PuBuGn")
   image_files <- list(
+    "data/Flags/ad.png", 
     "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
+    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/fr.png", 
     "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
     "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png"
   )
