@@ -448,9 +448,9 @@ descriptives <- function() {
   
   color_palette <- brewer.pal(n = 5, name = "PuBuGn")
   image_files <- list(
+    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Project/New Project/NetworkAnalyticsProject/AsylumInformation/data/Flags/ad.png", 
     "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
     "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
-    "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/fr.png", 
     "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png", 
     "C:/Users/swagl/OneDrive/Documents/Studium/Master/2. Semester/Network Analytics/Vorlesung/RSession/Flaggen/de.png"
   )
