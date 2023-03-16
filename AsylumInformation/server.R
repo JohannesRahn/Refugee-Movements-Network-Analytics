@@ -241,8 +241,8 @@ server <- function(input, output, session) {
     
     leaflet(vert) %>% 
       addProviderTiles(providers$CartoDB.Voyager) %>% 
-      addCircleMarkers() %>% 
-      addPolylines(data = edges_lines, weight = 1)
+      addCircleMarkers(color = "green") %>% 
+      addPolylines(data = edges_lines, weight = 2, color = "green", dashArray = "5,10")
   })
   
   # Introduction for About section
