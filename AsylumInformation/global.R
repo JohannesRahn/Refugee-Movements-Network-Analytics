@@ -52,7 +52,13 @@ prepare_data <- function() {
     names(dt.asylum.data)[names(dt.asylum.data)=="sub.region"] <- "Origin_Sub_Region"
     names(dt.asylum.data)[names(dt.asylum.data)=="ContinentName"] <- "Origin_Continent"
     
-    col.order <- c("Country.of.origin", "Country.of.asylum", "Year", "Country.of.origin..ISO.", "Country.of.asylum..ISO.", "Authority", "Stage.of.procedure", "Cases...Persons", "Recognized.decisions", "Complementary.protection", "Rejected.decisions", "Otherwise.closed", "Total.decisions", "Asylum_Income", "Asylum_Capital", "Asylum_Capital_Lat", "Asylum_Capital_Long", "Origin_Income", "Origin_Capital", "Origin_Capital_Lat", "Origin_Capital_Long", "Asylum_Region", "Asylum_Sub_Region", "Asylum_Continent", "Origin_Region", "Origin_Sub_Region", "Origin_Continent", "alpha.2.y", "alpha.2.x")
+    col.order <- c("Country.of.origin", "Country.of.asylum", "Year", "Country.of.origin..ISO.", 
+                   "Country.of.asylum..ISO.", "Authority", "Stage.of.procedure", "Cases...Persons", 
+                   "Recognized.decisions", "Complementary.protection", "Rejected.decisions", 
+                   "Otherwise.closed", "Total.decisions", "Asylum_Income", "Asylum_Capital", 
+                   "Asylum_Capital_Lat", "Asylum_Capital_Long", "Origin_Income", "Origin_Capital", 
+                   "Origin_Capital_Lat", "Origin_Capital_Long", "Asylum_Region", "Asylum_Sub_Region", 
+                   "Asylum_Continent", "Origin_Region", "Origin_Sub_Region", "Origin_Continent", "alpha.2.y", "alpha.2.x")
     
     dt.asylum.data <- dt.asylum.data[, col.order]
     

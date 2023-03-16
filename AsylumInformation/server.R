@@ -71,66 +71,66 @@ server <- function(input, output, session) {
   })
   
   
-  # Total Asylum Decisions per Year plot
-  output$total.decisions.plot <- renderPlot({
-    ggplot(dt.aggregated.asylum, aes(x = Year, y = Total_decisions)) +
-      geom_line(color = "#0072B2") +
-      labs(title = "Total Asylum Decisions per Year",
-           x = "Year",
-           y = "Total Asylum Decisions") +
-      theme_minimal() +
-      theme(plot.title = element_text(face = "bold", size = 16),
+  custom_theme <- function() {
+    theme_minimal() +
+      theme(plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
             axis.title = element_text(face = "bold", size = 14),
-            axis.text = element_text(size = 12))
-  })
+            axis.text = element_text(size = 12),
+            panel.grid.minor = element_line(color = "gray85"),
+            panel.grid.major = element_line(color = "gray75"))
+  }
   
-  # Recognized Decisions per Year plot
   output$recognized.decisions.plot <- renderPlot({
     ggplot(dt.aggregated.asylum, aes(x = Year, y = Recognized_decisions)) +
-      geom_line(color = "#0072B2") +
+      geom_line(color = "#1F78B4", size = 1.5, linetype = "solid") +
       labs(title = "Recognized Decisions per Year",
            x = "Year",
            y = "Recognized Decisions") +
-      theme_minimal() +
-      theme(plot.title = element_text(face = "bold", size = 16),
-            axis.title = element_text(face = "bold", size = 14),
-            axis.text = element_text(size = 12))
+      custom_theme()
   })
   
   output$rejected.decisions.plot <- renderPlot({
     ggplot(dt.aggregated.asylum, aes(x = Year, y = Rejected_decisions)) +
-      geom_line(color = "#0072B2") +
+      geom_line(color = "#E31A1C", size = 1.5, linetype = "solid") +
       labs(title = "Rejected Decisions per Year",
            x = "Year",
            y = "Rejected Decisions") +
-      theme_minimal() +
-      theme(plot.title = element_text(face = "bold", size = 16),
-            axis.title = element_text(face = "bold", size = 14),
-            axis.text = element_text(size = 12))
+      custom_theme()
   })
   
   output$otherwise.closed.decisions.plot <- renderPlot({
     ggplot(dt.aggregated.asylum, aes(x = Year, y = Otherwise_closed)) +
-      geom_line(color = "#0072B2") +
+      geom_line(color = "#33A02C", size = 1.5, linetype = "solid") +
       labs(title = "Otherwise Closed Decisions per Year",
            x = "Year",
-           y = "Oterwise Closed Decisions") +
-      theme_minimal() +
-      theme(plot.title = element_text(face = "bold", size = 16),
-            axis.title = element_text(face = "bold", size = 14),
-            axis.text = element_text(size = 12))
+           y = "Otherwise Closed Decisions") +
+      custom_theme()
   })
   
   output$total.closed.decisions.plot <- renderPlot({
     ggplot(dt.aggregated.asylum, aes(x = Year, y = Total_closed)) +
-      geom_line(color = "#0072B2") +
-      labs(title = " Decisions per Year",
+      geom_line(color = "#6A3D9A", size = 1.5, linetype = "solid") +
+      labs(title = "Total Closed Decisions per Year",
            x = "Year",
-           y = "Oterwise Closed Decisions") +
-      theme_minimal() +
-      theme(plot.title = element_text(face = "bold", size = 16),
-            axis.title = element_text(face = "bold", size = 14),
-            axis.text = element_text(size = 12))
+           y = "Total Closed Decisions") +
+      custom_theme()
+  })
+  
+  output$totalRecognized <- renderText({
+    totalRecognized <- sum(dt.asylum$Recognized.decisions)
+    formatC(totalRecognized, format = "d", big.mark = ",")
+  })
+  
+  output$totalRejected <- renderText({
+    totalRejected <- sum(dt.asylum$Rejected.decisions)
+    formatC(totalRejected, format = "d", big.mark = ",")
+  })
+  
+  output$positivePercentage <- renderText({
+    recognized <- sum(dt.asylum$Recognized.decisions)
+    total <- sum(dt.asylum$Total.decisions)
+    percentage <- (recognized / total) * 100
+    paste0(formatC(percentage, format = "f", digits = 2), "%")
   })
 
   # Introduction to network characteristics

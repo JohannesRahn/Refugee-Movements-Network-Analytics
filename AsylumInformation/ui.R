@@ -27,6 +27,20 @@ ui <- dashboardPage(
     tabItems(
       tabItem(tabName = "analysis",
               fluidRow(
+                column(4,
+                       h3("Total Recognized Decisions"),
+                       textOutput("totalRecognized")
+                ),
+                column(4,
+                       h3("Total Rejected Decisions"),
+                       textOutput("totalRejected")
+                ),
+                column(4,
+                       h3("Percentage of Positive Decisions"),
+                       textOutput("positivePercentage")
+                )
+              ),
+              fluidRow(
                 column(12, uiOutput("introduction_descriptives"))
               ),
               fluidRow(
