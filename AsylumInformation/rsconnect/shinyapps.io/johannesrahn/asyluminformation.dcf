@@ -5,7 +5,7 @@ account: johannesrahn
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 8503000
-bundleId: 6926515
+bundleId: 6967519
 url: https://johannesrahn.shinyapps.io/asyluminformation/
-when: 1678204693.95092
-lastSyncTime: 1678204693.95093
+when: 1678989425.24941
+lastSyncTime: 1678989425.24943

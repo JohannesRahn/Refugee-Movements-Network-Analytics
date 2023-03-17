@@ -14,7 +14,6 @@ library(visNetwork)
 
 
 prepare_data <- function() {
-  #TODO Save file
   
   if (file.exists("data/asylum_data.RData")) {
     load("data/asylum_data.RData")
@@ -70,12 +69,13 @@ prepare_data <- function() {
   return(dt.asylum.data)
 }
 
-aggregate_data <- function() {
+aggregate_data <- function(dt.asylum) {
   #This function sums up all information for each year
-  dt.aggregated.asylum <- prepare_data() %>%
+  dt.aggregated.asylum <- dt.asylum %>%
     group_by(Year) %>%
     summarise(Total_decisions = sum(Total.decisions),
               Recognized_decisions = sum(Recognized.decisions),
+              
               Rejected_decisions = sum(Rejected.decisions),
               Otherwise_closed = sum(Otherwise.closed),
               # Calculate all closed cases
