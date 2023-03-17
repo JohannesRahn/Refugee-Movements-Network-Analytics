@@ -201,7 +201,7 @@ server <- function(input, output, session) {
     paste0(formatC(percentage, format = "f", digits = 2), "%")
   })
 
-  # Introduction to network characteristics
+  # Introduction to network characteristics origin
   output$introduction <- renderText({
     HTML(paste("<h1 style='color:green;'>", "Network Characteristics", "</h1>", 
                "<br>", "On the network page you can find a network graph showing the connections between country of origin and the country of asylum. You can select the country of origin, the year and the income level for the country of asylum.", "<br>", "<br>"))
@@ -218,6 +218,34 @@ server <- function(input, output, session) {
     edges_df <- SpatialLinesDataFrame(edges_lines, edges)
     
     pal <- colorQuantile(palette = "YlOrRd", domain = unique(edges$weight), n = 10)
+    
+    # Calculate quantiles and create labels
+    quantiles <- quantile(edges$weight, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
+    
+    leaflet(vert) %>% 
+      addProviderTiles(providers$CartoDB.Voyager) %>% 
+      addCircleMarkers() %>% 
+      addPolylines(data = edges_df, weight = 2, color = ~pal(weight)) %>%
+      addLegend(pal = pal, values = edges$weight, title = "Total Decisions", position = "bottomright")
+  })
+  
+  # Introduction to network characteristics asylum
+  output$introduction_asylum <- renderText({
+    HTML(paste("<h1 style='color:green;'>", "Asylum", "</h1>", "<br>", "On the network page you can find a network graph showing the connections between country of origin and the country of asylum. You can select the country of origin, the year and the income level for the country of asylum.", "<br>", "<br>"))
+  })
+  
+  # World map with country of origin network
+  output$mymap_asylum <- renderLeaflet({
+    graph_asylum <- create_asylum_graph_asylum(dt.asylum, input$asylum, input$Year_input_asyl, input$income_level_asyl)
+    vert <- graph_asylum$vert
+    edges <- graph_asylum$edges
+    g <- graph_asylum$g
+    edges_lines <- graph_asylum$edges_lines
+    
+    edges_df <- SpatialLinesDataFrame(edges_lines, edges)
+    
+    pal <- colorQuantile(palette = "YlOrRd", domain = unique(edges$weight), n = 10)
+    
     # Calculate quantiles and create labels
     quantiles <- quantile(edges$weight, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
     
@@ -246,7 +274,7 @@ server <- function(input, output, session) {
                "On this page you can find a complete network graph for the asylum applications worldwide. The country of origin is connected with the country of asylum. The network data is displayed per year, so you can try to find changes in the pattern between the different years. Furthermore, we divided the countries in five different groups. Describe the different groups", "<br>", "<br>"))
   }) 
   
-  # Shows circle_graph
+  # Shows circle network
   output$circular_plot <- renderVisNetwork({
     # Check if the button has been clicked
     if (input$show_graph > 0) {
@@ -255,7 +283,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Creates a table with statistical information about circle_graph
+  # Creates a table with statistical information about circle network
   output$info_circle <- renderTable({
     # access the igraph return of the graph_data function
     g <- graph_data()[[2]]
@@ -284,13 +312,13 @@ server <- function(input, output, session) {
     df <- graph_data()[[4]]
     col <- switch(input$col,
                   "betweenness" = df$betweenness,
-                  "closeness" = df$closeness,
+                  "closeness" = format(round(df$closeness, 4)),
                   "eigenvector" = df$eigenvector)
-    min_val <- min(col)
-    max_val <- max(col)
-    mean_val <- mean(col)
-    median_val <- median(col)
-    sd_val <- sd(col)
+    min_val <- min(col, na.rm = TRUE)
+    max_val <- max(col, na.rm = TRUE)
+    mean_val <- mean(col, na.rm = TRUE)
+    median_val <- median(col, na.rm = TRUE)
+    sd_val <- sd(col, na.rm = TRUE)
     statistics <- data.frame(
       Statistic = c("Minimum", "Mean", "Median", "Maximum", "Standard Deviation"),
       Value = c(min_val, mean_val, median_val, max_val, sd_val)
@@ -305,7 +333,7 @@ server <- function(input, output, session) {
   
   # Create a prediction
   output$mymap_pred <- renderLeaflet({
-    graph_pred <- create_prediction_graph()
+    graph_pred <- create_prediction_graph(input$asylum)
     vert <- graph_pred$vert
     edges <- graph_pred$edges
     g <- graph_pred$graph

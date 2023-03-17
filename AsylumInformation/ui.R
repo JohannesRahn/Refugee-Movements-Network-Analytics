@@ -17,9 +17,12 @@ ui <- dashboardPage(
     sidebarMenu(
       menuItem("Descriptive Analysis", tabName = "analysis", 
                icon = icon("chart-bar"))
+      
       , menuItem("Regional Analysis", tabName = "region_analysis", 
                        icon = icon("map-pin"))
-      , menuItem("Network Characteristics", tabName = "characteristics", icon = icon("globe"))
+      , menuItem("Network Characteristics", tabName = "characteristics", icon = icon("globe"),
+            menuSubItem("Origin", tabName = "origin_graph", icon = icon("angle-right")),
+            menuSubItem("Asylum", tabName = "asylum_graph", icon = icon("angle-right")))
       , menuItem("Network Exploration", tabName = "network_exploration", icon = icon("code"))
       , menuItem("Network Prediction", tabName = "network_prediction", icon = icon("list-alt"))
       , menuItem("About", tabName = "about", icon = icon("info-circle"))
@@ -154,23 +157,33 @@ ui <- dashboardPage(
               )
               )
       ),
-      tabItem(tabName = "characteristics",
+      tabItem(tabName = "origin_graph",
               fluidRow(
                 column(9, uiOutput("introduction")),
               ),
               fluidRow(
                 column(4, pickerInput("origin", "Country of origin", choices = unique(dt.asylum$Country.of.origin[dt.asylum$Country.of.origin != "Unknown"]), options = list(actions_box = TRUE), selected="Afghanistan", multiple=FALSE)),
                 column(4, pickerInput("Year_input", "Year", choices=unique(dt.asylum$Year)[order(unique(dt.asylum$Year))], options = list(actions_box = TRUE), selected=2017, multiple=FALSE)),
-                column(4, pickerInput("income_level", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))
-                ),
-              # column(4, uiOutput("asylum.income.selector"))
-              
-              
+                column(4, pickerInput("income_level", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))),
+                # column(4, uiOutput("asylum.income.selector"))
               fluidRow(
                 column(3, uiOutput("info")),
                 column(9,leafletOutput("mymap")),
+                ),
+      ),
+      tabItem(tabName = "asylum_graph",
+              fluidRow(
+                column(9, uiOutput("introduction_asylum")),
               ),
-              
+              fluidRow(
+                column(4, pickerInput("asylum", "Country of asylum", sorted_choices <- sort(unique(dt.asylum$Country.of.asylum[dt.asylum$Country.of.asylum != "Unknown"]))
+, options = list(actions_box = TRUE), selected="Germany", multiple=FALSE)),
+                column(4, pickerInput("Year_input_asyl", "Year", choices=unique(dt.asylum$Year)[order(unique(dt.asylum$Year))], options = list(actions_box = TRUE), selected=2000, multiple=FALSE)),
+                column(4, pickerInput("income_level_asyl", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))),
+              fluidRow(
+                column(3, uiOutput("info_asylum")),
+                column(9,leafletOutput("mymap_asylum")),
+              ),
       ),
       tabItem(tabName = "network_exploration",
               fluidRow(
@@ -199,6 +212,7 @@ ui <- dashboardPage(
                 column(9, uiOutput("introduction_pred")),
               ),
               fluidRow(
+                column(3, pickerInput("asylum", "Country of asylum", choices = unique(dt.asylum$Country.of.asylum[dt.asylum$Country.of.asylum != "Unknown"]), options = list(actions_box = TRUE), selected="Germany", multiple=FALSE)),
                 column(width = 9,
                        leafletOutput("mymap_pred"),
                 )
