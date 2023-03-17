@@ -14,7 +14,6 @@ library(visNetwork)
 
 
 prepare_data <- function() {
-  #TODO Save file
   
   if (file.exists("data/asylum_data.RData")) {
     load("data/asylum_data.RData")
@@ -52,7 +51,13 @@ prepare_data <- function() {
     names(dt.asylum.data)[names(dt.asylum.data)=="sub.region"] <- "Origin_Sub_Region"
     names(dt.asylum.data)[names(dt.asylum.data)=="ContinentName"] <- "Origin_Continent"
     
-    col.order <- c("Country.of.origin", "Country.of.asylum", "Year", "Country.of.origin..ISO.", "Country.of.asylum..ISO.", "Authority", "Stage.of.procedure", "Cases...Persons", "Recognized.decisions", "Complementary.protection", "Rejected.decisions", "Otherwise.closed", "Total.decisions", "Asylum_Income", "Asylum_Capital", "Asylum_Capital_Lat", "Asylum_Capital_Long", "Origin_Income", "Origin_Capital", "Origin_Capital_Lat", "Origin_Capital_Long", "Asylum_Region", "Asylum_Sub_Region", "Asylum_Continent", "Origin_Region", "Origin_Sub_Region", "Origin_Continent", "alpha.2.y", "alpha.2.x")
+    col.order <- c("Country.of.origin", "Country.of.asylum", "Year", "Country.of.origin..ISO.", 
+                   "Country.of.asylum..ISO.", "Authority", "Stage.of.procedure", "Cases...Persons", 
+                   "Recognized.decisions", "Complementary.protection", "Rejected.decisions", 
+                   "Otherwise.closed", "Total.decisions", "Asylum_Income", "Asylum_Capital", 
+                   "Asylum_Capital_Lat", "Asylum_Capital_Long", "Origin_Income", "Origin_Capital", 
+                   "Origin_Capital_Lat", "Origin_Capital_Long", "Asylum_Region", "Asylum_Sub_Region", 
+                   "Asylum_Continent", "Origin_Region", "Origin_Sub_Region", "Origin_Continent", "alpha.2.y", "alpha.2.x")
     
     dt.asylum.data <- dt.asylum.data[, col.order]
     
@@ -64,12 +69,13 @@ prepare_data <- function() {
   return(dt.asylum.data)
 }
 
-aggregate_data <- function() {
+aggregate_data <- function(dt.asylum) {
   #This function sums up all information for each year
-  dt.aggregated.asylum <- prepare_data() %>%
+  dt.aggregated.asylum <- dt.asylum %>%
     group_by(Year) %>%
     summarise(Total_decisions = sum(Total.decisions),
               Recognized_decisions = sum(Recognized.decisions),
+              
               Rejected_decisions = sum(Rejected.decisions),
               Otherwise_closed = sum(Otherwise.closed),
               # Calculate all closed cases
