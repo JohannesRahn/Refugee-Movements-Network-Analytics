@@ -179,8 +179,7 @@ server <- function(input, output, session) {
     labs(title = "Total Decisions by Asylum Authority",
          x = "Asylum Authority",
          y = "Total Decisions") +
-    custom_theme() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+    custom_theme()
   })
   
   output$totalRecognized <- renderText({
