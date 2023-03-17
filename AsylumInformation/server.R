@@ -1,4 +1,5 @@
 source("global.R")
+
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   options(digits = 4)
@@ -118,7 +119,7 @@ server <- function(input, output, session) {
             panel.grid.minor = element_line(color = "gray85"),
             panel.grid.major = element_line(color = "gray75"))
   }
-  output$total.decisions.plot <- renderPlot({
+  output$yearly.decisions.plot <- renderPlot({
     ggplot(descriptive_data(), aes(x = Year, y = Total_decisions)) +
       geom_line(color = "#1F78B4", size = 1.5, linetype = "solid") +
       labs(title = "Total Decisions per Year",

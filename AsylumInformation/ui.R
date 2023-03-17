@@ -95,7 +95,7 @@ ui <- dashboardPage(
                                      selected = "No Filter"))
                 ),
                 fluidRow(
-                  column(6, wellPanel(plotOutput("total.decisions.plot"))),
+                  column(6, wellPanel(plotOutput("yearly.decisions.plot"))),
                   column(6, wellPanel(plotOutput("authority.decisions.plot")))
                   #column(6, wellPanel(plotOutput("recognized.decisions.plot")))
                 ),
@@ -107,24 +107,51 @@ ui <- dashboardPage(
               )
       ),
       tabItem(tabName = "analysis",
-              # Creating styling for the plots
               fluidPage(
-                fluidRow(
-                  column(12, uiOutput("introduction_descriptives"))
-                ),
-                fluidRow(
-                  column(4, wellPanel(plotOutput("total.asylum"))),
-                  column(4, wellPanel(plotOutput("total.origin"))),
-                  column(4, wellPanel(plotOutput("total.rejection")))
-                ),
-                fluidRow(
-                  
-                  column(4, wellPanel(plotOutput("total.rejection.rate"))),
-                  column(4, wellPanel(plotOutput("decisions.by.income")))
-                ),
-                fluidRow(
-                  column(9, wellPanel(leafletOutput("rejections.map")))
-                )
+                tags$style(HTML("
+    .well {
+      background-color: #f5f5f5;
+      border-radius: 3px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .kpi {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .kpi-head {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+  ")),
+              fluidRow(
+                column(12, uiOutput("introduction_descriptives"))
+              ),
+              fluidRow(
+                column(4, plotOutput("total.asylum")),
+                column(8, div("Random Title 1", style = "background-color: #f7f7f7; padding: 20px; border-radius: 5px;"))
+              ),
+              fluidRow(
+                column(4, plotOutput("total.origin")),
+                column(8, div("Random Title 2", style = "background-color: #f7f7f7; padding: 20px; border-radius: 5px;")), offset = 4
+              ),
+              fluidRow(
+                column(4, plotOutput("total.rejection")),
+                column(8, div("Random Title 3", style = "background-color: #f7f7f7; padding: 20px; border-radius: 5px;")), offset = 8
+              ),
+              fluidRow(
+                column(4, plotOutput("total.rejection.rate")),
+                column(8, div("Random Title 4", style = "background-color: #f7f7f7; padding: 20px; border-radius: 5px;"))
+              ),
+              fluidRow(
+                column(4, plotOutput("decisions.by.income")),
+                column(8, div("Random Title 5", style = "background-color: #f7f7f7; padding: 20px; border-radius: 5px;")), offset = 4
+              ),
+              fluidRow(
+                column(12, leafletOutput("rejections.map"), width = 12)
+              )
               )
       ),
       tabItem(tabName = "characteristics",
@@ -209,4 +236,4 @@ ui <- dashboardPage(
 
 
 # Run the app
-shinyApp(ui = ui, server = server, options = list(height = 1440))
+shinyApp(ui = ui, server = server, options = list(height = 1080))

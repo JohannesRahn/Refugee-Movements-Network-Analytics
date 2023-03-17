@@ -11,7 +11,10 @@ library(sp)
 library(circlize)
 library(networkD3)
 library(visNetwork)
-
+library(RColorBrewer)
+library(ggimage)
+library(png)
+library(grid)
 
 prepare_data <- function() {
   
@@ -439,7 +442,7 @@ preparation_rejections <- function(){
 descriptives <- function() {
   rejections <- preparation_rejections()[[1]]
   dt.asylum <- preparation_rejections()[[2]]
-
+  
   ##### top 10 country asylum
   # sort df and get top 5 country asylum
   df.top.asylum.5 <- rejections %>%
@@ -447,12 +450,50 @@ descriptives <- function() {
     top_n(5, total.decisions)
   
   # create bar chart for top 5 country asylum
-  p1 <- ggplot(df.top.asylum.5, aes(x = reorder(Country.of.asylum, -total.decisions), y = total.decisions)) +
-    geom_bar(stat = "identity", fill = "blue") +
-    labs(x = "Country of Asylum", y = "Total Decisions") +
+  color_palette <- brewer.pal(n = 5, name = "PuBuGn")
+  image_files <- c(
+    "data/Flags/de.png", 
+    "data/Flags/us.png", 
+    "data/Flags/fr.png", 
+    "data/Flags/gb.png", 
+    "data/Flags/za.png"
+  )
+  
+  # Create a new column in the data frame with the image file paths
+  df.top.asylum.5$image_file <- image_files
+  
+  # Define a function to read the images from file and convert them to grobs
+  read_image <- function(file) {
+    img <- readPNG(file)
+    grob <- rasterGrob(img, interpolate=TRUE)
+    return(grob)
+  }
+  
+  # Read the images from file and convert them to grobs
+  images <- lapply(image_files, read_image)
+  
+  # Convert the column to a vector before passing it to reorder()
+  df.top.asylum.5$Country.of.asylum <- unlist(df.top.asylum.5$Country.of.asylum)
+  
+  # Create the plot with images
+  p1 <- ggplot(df.top.asylum.5, aes(x = reorder(Country.of.asylum, -total.decisions), y = total.decisions, fill = Country.of.asylum)) +
+    geom_bar(stat = "identity") +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_files), size = 0.08) +
+    geom_text(aes(label = paste0(round(total.decisions/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
+    labs(x = "Countries of Asylum", y = "Total Decisions (in millions)") + # Remove x-axis label
     ggtitle("Top 5 Countries of Asylum by Total Decisions in 2022") +
-    theme(panel.grid.major = element_blank(), # Remove major grid lines
-          panel.grid.minor = element_blank()) # Remove minor grid lines
+    scale_fill_manual(values = color_palette) + # Use the defined color palette
+    theme_minimal() +
+    theme(plot.title = element_text(size = 16, face = "bold", hjust = 0), # Increase font size of title
+          axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
+          axis.text = element_text(size = 12), # Increase font size of tick labels
+          panel.grid.major = element_blank(), # Remove major grid lines
+          panel.grid.minor = element_blank(), # Remove minor grid lines
+          axis.line.y = element_blank(), # Remove y-axis line
+          axis.ticks.y = element_blank(), # Remove y-axis ticks
+          axis.text.y = element_blank(), # Remove y-axis tick labels
+          axis.text.x = element_blank(), # Remove x-axis tick labels
+          plot.margin = unit(c(1, 1, 1, 3), "lines")) # Add space on the right for x-axis labels
   
   
   ##### top 5 countries of origin
@@ -466,14 +507,52 @@ descriptives <- function() {
   df.top.origin.5 <- df.top.origin %>%
     arrange(desc(total.decisions)) %>%
     top_n(5, total.decisions)
+
+  color_palette <- brewer.pal(n = 5, name = "PuBuGn")
+  image_files2 <- c(
+    "data/Flags/un.png", 
+    "data/Flags/af.png", 
+    "data/Flags/sy.png", 
+    "data/Flags/iq.png", 
+    "data/Flags/rs.png"
+  )
   
-  # create bar chart for top 5 country asylum
-  p2 <- ggplot(df.top.origin.5, aes(x = reorder(Country.of.origin, -total.decisions), y = total.decisions)) +
-    geom_bar(stat = "identity", fill = "green") +
-    labs(x = "Country of Origin", y = "Total Decisions") +
+  # Create a new column in the data frame with the image file paths
+  df.top.origin.5$image_file <- image_files2
+  
+  # Define a function to read the images from file and convert them to grobs
+  read_image <- function(file) {
+    img <- readPNG(file)
+    grob <- rasterGrob(img, interpolate=TRUE)
+    return(grob)
+  }
+  
+  # Read the images from file and convert them to grobs
+  images <- lapply(image_files2, read_image)
+  
+  # Convert the column to a vector before passing it to reorder()
+  df.top.origin.5$Country.of.origin <- unlist(df.top.origin.5$Country.of.origin)
+  
+  # Create the plot with images
+  p2 <- ggplot(df.top.origin.5, aes(x = reorder(Country.of.origin, -total.decisions), y = total.decisions, fill = Country.of.origin)) +
+    geom_bar(stat = "identity") +
+    ggimage::geom_image(aes(x = Country.of.origin, y = -1, image = image_files2), size = 0.08) +
+    geom_text(aes(label = paste0(round(total.decisions/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
+    labs(x = "Countries of Asylum", y = "Total Decisions (in millions)") + # Remove x-axis label
     ggtitle("Top 5 Countries of Asylum by Total Decisions in 2022") +
-    theme(panel.grid.major = element_blank(), # Remove major grid lines
-          panel.grid.minor = element_blank()) # Remove minor grid lines
+    scale_fill_manual(values = color_palette) + # Use the defined color palette
+    theme_minimal() +
+    theme(plot.title = element_text(size = 16, face = "bold", hjust = 0), # Increase font size of title
+          axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
+          axis.text = element_text(size = 12), # Increase font size of tick labels
+          panel.grid.major = element_blank(), # Remove major grid lines
+          panel.grid.minor = element_blank(), # Remove minor grid lines
+          axis.line.y = element_blank(), # Remove y-axis line
+          axis.ticks.y = element_blank(), # Remove y-axis ticks
+          axis.text.y = element_blank(), # Remove y-axis tick labels
+          axis.text.x = element_blank(), # Remove x-axis tick labels
+          plot.margin = unit(c(1, 1, 1, 3), "lines")) # Add space on the right for x-axis labels
+  
   
   
   ##### top 5 countries highest rejection 
@@ -483,12 +562,47 @@ descriptives <- function() {
     top_n(5, total.rejections)
   
   # create bar chart for top 5 country asylum
-  p3 <- ggplot(df.top.rejection5, aes(x = reorder(Country.of.asylum, -total.rejections), y = total.rejections)) +
-    geom_bar(stat = "identity", fill = "yellow") +
-    labs(x = "Country with highest absolute rejections", y = "Total Rejections") +
+  # Define a list of local file paths corresponding to the countries in the plot
+  image_files3 <- c(
+    "data/Flags/fr.png", 
+    "data/Flags/de.png", 
+    "data/Flags/gb.png", 
+    "data/Flags/us.png", 
+    "data/Flags/za.png"
+  )
+  
+  # Create a new column in the data frame with the image file paths
+  df.top.rejection5$image_file <- image_files3
+  
+  # Define a function to read the images from file and convert them to grobs
+  read_image <- function(file) {
+    img <- readPNG(file)
+    grob <- rasterGrob(img, interpolate=TRUE)
+    return(grob)
+  }
+  
+  # Read the images from file and convert them to grobs
+  images <- lapply(image_files3, read_image)
+  
+  p3 <- ggplot(df.top.rejection5, aes(x = reorder(Country.of.asylum, -total.rejections), y = total.rejections, fill = Country.of.asylum)) +
+    geom_bar(stat = "identity") +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_files3), size = 0.08) +
+    geom_text(aes(label = paste0(round(total.rejections/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
+    labs(x = "Country with highest absolute rejections", y = "Total Rejections (in millions)") +
     ggtitle("Top 5 Countries with highest rejections") +
-    theme(panel.grid.major = element_blank(), # Remove major grid lines
-          panel.grid.minor = element_blank()) # Remove minor grid lines
+    scale_fill_manual(values = color_palette) + # Use the defined color palette
+    theme_minimal() +
+    theme(plot.title = element_text(size = 16, face = "bold", hjust = +0.5), # Increase font size of title
+          axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
+          axis.text = element_text(size = 12), # Increase font size of tick labels
+          panel.grid.major = element_blank(), # Remove major grid lines
+          panel.grid.minor = element_blank(), # Remove minor grid lines
+          axis.line.y = element_blank(), # Remove y-axis line
+          axis.ticks.y = element_blank(), # Remove y-axis ticks
+          axis.text.y = element_blank(), # Remove y-axis tick labels
+          axis.text.x = element_blank(), # Remove x-axis tick labels
+          plot.margin = unit(c(1, 1, 1, 3), "lines")) # Add space on the right for x-axis labels
+  
   
   ###### top 5 countries by rejection rate
   # sort df and get top 5 countries with highest rejections
@@ -496,13 +610,42 @@ descriptives <- function() {
     arrange(desc(rejection.rate)) %>%
     top_n(5, rejection.rate)
   
-  # create bar chart for top 5 country asylum
-  p4 <- ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), y = rejection.rate)) +
-    geom_bar(stat = "identity", fill = "red") +
-    labs(x = "Country with highest rejection rate", y = "Rejection rate") +
-    ggtitle("Top 5 Countries with highest rejection rate") +
-    theme(panel.grid.major = element_blank(), # Remove major grid lines
-          panel.grid.minor = element_blank()) # Remove minor grid lines
+  image_files4 <- c(
+    "data/Flags/aw.png", 
+    "data/Flags/fm.png", 
+    "data/Flags/bs.png", 
+    "data/Flags/jp.png", 
+    "data/Flags/ky.png"
+  )
+  
+  # Create a new column in the data frame with the image file paths
+  df.top.rejection.rate5$image_file <- image_files4
+  
+  # Read the images from file and convert them to grobs
+  images <- lapply(image_files4, read_image)
+  
+  # Add the images to the plot using geom_image()
+  p4 <- ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), y = rejection.rate, fill = Country.of.asylum)) +
+    geom_bar(stat = "identity") +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_file), size = 0.08) +
+    geom_text(aes(label = round(rejection.rate, 1)), vjust = -0.5, size = 4) + # Add data labels to bars as percentages
+    labs(x = "Countries of Asylum", y = "Rejection Rate") + # Remove x-axis label
+    ggtitle("Top 5 Countries of Asylum by Rejection Rate in 2022") +
+    scale_fill_manual(values = color_palette) + # Use the defined color palette
+    theme_minimal() +
+    theme(plot.title = element_text(size = 16, face = "bold", hjust = +0.5), # Increase font size of title
+          axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
+          axis.text = element_text(size = 12), # Increase font size of tick labels
+          panel.grid.major = element_blank(), # Remove major grid lines
+          panel.grid.minor = element_blank(), # Remove minor grid lines
+          axis.line.y = element_blank(), # Remove y-axis line
+          axis.ticks.y = element_blank(), # Remove y-axis ticks
+          axis.text.y = element_blank(), # Remove y-axis tick labels
+          axis.text.x = element_blank(), # Remove x-axis tick labels
+          plot.margin = unit(c(1, 1, 1, 3), "lines")) # Add space on the right for x-axis labels
+  
+  
+  
   
   
   ##### pie chart with total decisions by income level
@@ -511,13 +654,24 @@ descriptives <- function() {
     summarize(total_decisions = sum(Total.decisions))
   
   # Create a pie chart
-  p5 <- ggplot(income_levels, aes(x="", y=total_decisions, fill=Asylum_Income)) +
+  income_levels_filtered <- income_levels[income_levels$Asylum_Income %in% c("High income", "Low income", "Lower middle income", "Upper middle income"), ]
+  
+  p5 <- ggplot(income_levels_filtered, aes(x="", y=total_decisions, fill=Asylum_Income)) +
     geom_bar(stat="identity", width=1) +
     coord_polar("y", start=0) +
     labs(fill="Income Level", x=NULL, y=NULL, title="Total Decisions by Income Level") +
     theme_void() +
-    geom_text(aes(label=scales::percent(total_decisions/sum(total_decisions))), 
-              position=position_stack(vjust=0.5), size=4)
+    geom_text(aes(label=paste0(round(total_decisions/sum(total_decisions)*100),"%")), 
+              position=position_stack(vjust=0.5), size=4) +
+    scale_fill_manual(values = color_palette) + # Use the defined color palette
+    theme(plot.title = element_text(size = 16, face = "bold", hjust = +0.5), # Increase font size of title
+          axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
+          axis.text = element_blank(), # Remove axis tick labels
+          plot.margin = unit(c(1, 1, 1, 1), "lines")) # Add space around the plot
+  
+  
+  
+  
   
   
   # Call reactive element
@@ -530,8 +684,10 @@ descriptives <- function() {
     addCircleMarkers(lng = ~asylum_long, lat = ~asylum_lat,
                      color = ~pal(rejection.rate), fillOpacity = 10,
                      radius = 10,
-                     popup = ~paste(Country.of.asylum, "<br>",
-                                    "Rejection Rate: ", round((rejection.rate * 100), 1), "%")) %>%
+                     popup = ~paste("Country: ", Country.of.asylum, "<br>",
+                                    "Rejection Rate: ", round((rejection.rate * 100), 1), "%", "<br>",
+                                    "Total Decisions: ", total.decisions, "<br>",
+                                    "Total Rejections: ", total.rejections)) %>%
     addLegend(pal = pal, values = df.rejections.map$rejection.rate,
               title = "Rejection Rate", position = "bottomright")
   
