@@ -233,7 +233,7 @@ server <- function(input, output, session) {
   
   # Create a prediction
   output$mymap_pred <- renderLeaflet({
-    graph_pred <- create_prediction_graph()
+    graph_pred <- create_prediction_graph(input$country, input$in_out)
     vert <- graph_pred$vert
     edges <- graph_pred$edges
     g <- graph_pred$graph
@@ -243,6 +243,17 @@ server <- function(input, output, session) {
       addProviderTiles(providers$CartoDB.Voyager) %>% 
       addCircleMarkers(color = "green") %>% 
       addPolylines(data = edges_lines, weight = 2, color = "green", dashArray = "5,10")
+  })
+  
+  # Statistics to country of origin network
+  output$pred_info <- renderTable({
+    # access the igraph return of the graph_data function
+    graph <- create_prediction_graph(input$country, input$in_out)
+    g <- graph$g_old
+    data.frame(
+      Country = graph$vert$name[!(graph$vert$name == input$country)],
+      "Jaccard Index" = graph$edges$weight
+    )
   })
   
   # Introduction for About section

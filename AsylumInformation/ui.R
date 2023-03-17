@@ -80,7 +80,7 @@ ui <- dashboardPage(
               )),
               fluidRow(
                 column(3, tableOutput("info_circle")),
-                column(9, visNetworkOutput("circular_plot")),
+                column(9, visNetworkOutput("circular_plot"))
               ),
               fluidRow(
                 column(3, uiOutput("description_cen")),
@@ -94,14 +94,16 @@ ui <- dashboardPage(
       )),
       tabItem(tabName = "network_prediction",
               fluidRow(
-                column(9, uiOutput("introduction_pred")),
+                column(9, uiOutput("introduction_pred"))
               ),
               fluidRow(
-                column(width = 9,
-                       leafletOutput("mymap_pred"),
-                )
+                column(4, pickerInput("country", "Country", choices = unique(dt.asylum$Country.of.origin[dt.asylum$Country.of.origin != "Unknown"]), options = list(actions_box = TRUE), selected="Afghanistan", multiple=FALSE)),
+                column(4, pickerInput("in_out", "Asylum or origin", choices=c("Asylum", "Origin"), options = list(actions_box = TRUE), selected="Asylum", multiple=FALSE)),
               ),
-              
+              fluidRow(
+                column(9, leafletOutput("mymap_pred")),
+                column(3, uiOutput("pred_info"))
+              )
       ),
       tabItem(tabName = "about",
               uiOutput("about"),
