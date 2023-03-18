@@ -11,6 +11,7 @@ library(sp)
 library(circlize)
 library(networkD3)
 library(visNetwork)
+library(shinyalert)
 
 
 prepare_data <- function() {
@@ -83,10 +84,7 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   dt.asylum <- prepare_data()
   dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.origin == country & dt.asylum$Year == Year_input, ])
   dt.asylum.filtered <- dt.asylum.filtered[!(dt.asylum.filtered$Country.of.origin == "Unknown" | dt.asylum.filtered$Country.of.asylum == "Unknown"), ]
-  
-  
-  
-  
+
   lon_lat <- function() {
     location.vertices <- data.table(dt.asylum.filtered) 
     location.origin <- location.vertices[, c("Country.of.origin", "Origin_Capital_Lat", "Origin_Capital_Long", "Year", "Origin_Income")]

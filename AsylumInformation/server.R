@@ -228,9 +228,25 @@ server <- function(input, output, session) {
   
   # Introduction to network prediction
   output$introduction_pred <- renderText({
-    HTML(paste("<h1 style='color:blue;'>", "Network Prediction", "</h1>", "<br>", "On this page you can find countries with similar patterns.", "<br>", "<br>"))
+    HTML(paste("<h1 style='color:green;'>", "Network Prediction", "</h1>", "<br>",
+               "On this page we included a Jaccard Index calculation that reveals how 
+               similar nations are based on their refugee flows. If two nations are showing similar behaviors, 
+               they may also have similar migration patterns and encounter comparable difficulties 
+               in aiding and assisting refugees.
+               With the filter, you can enter a country name and see a list of the top countries that are 
+               most likely to have similar refugee behavior based on our Jaccard Index calculation. Also it is 
+               possible to distinguish if a country has similar patterns in terms of being the country of origin 
+               and being the country of asylum.", "<br>", "<br>",
+               
+               "<b>", "Jaccard Index", "</b>", "<br>",
+               "In general, the measure 'Jaccard Index' is a similarity measure in a network,
+               which is considering two vertices and their number of common neighbors divided by 
+               the total number of neighbors these both vertices have. It ranges from 0 to 1, 
+               with 0 indicating no similarity between the sets and 1 indicating complete similarity.
+               If necessary, it can also differentiate in directed network graphs between incoming and outgoing edges.", "<br>", "<br>"))
   })
-  
+
+
   # Create a prediction
   output$mymap_pred <- renderLeaflet({
     graph_pred <- create_prediction_graph(input$country, input$in_out)
@@ -244,6 +260,25 @@ server <- function(input, output, session) {
       addCircleMarkers(color = "green") %>% 
       addPolylines(data = edges_lines, weight = 2, color = "green", dashArray = "5,10")
   })
+  
+  
+  #describe prediction
+  output$description_pred <- renderText({
+    HTML(paste("<br>",
+               "Analyzing refugee flows is an important task for understanding the complex network 
+               of relationships that exist between countries of origin and countries of asylum.
+               Using the Jaccard Index, we can identify which countries are similar regarding their refugee 
+               behavior. In this case, we are using it to measure the similarity between the refugee flows of two countries.
+               If two countries have similar refugee flows, it suggests that they may have similar migration patterns and
+               face similar challenges in providing aid and support to refugees. It is possible to identify areas where 
+               international cooperation and collaboration may be beneficial in addressing refugee-related issues.", "<br>",
+               "Differentiating between country of origin and country of asylum is crucial in this analysis. The country 
+               of origin refers to the country where the refugee is from, while the country of asylum is the country where 
+               the refugee is seeking asylum or refuge. Both countries are in very different situations, which is why it is
+               important to differentiate between them regarding our analysis.
+               Overall, this analysis is helpful for understanding the complex network of relationships surrounding refugee
+               migration and identifying patterns that can inform policy decisions and support efforts for refugees."))
+    })
   
   # Statistics to country of origin network
   output$pred_info <- renderTable({

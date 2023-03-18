@@ -1,4 +1,6 @@
 source("server.R")
+#useShinyalert()
+
 dt.asylum <- prepare_data()
 dt.asylum.aggregated <- aggregate_data()
 # dt.asylum$Country.of.origin <- as.character(dt.asylum$Country.of.origin)
@@ -23,6 +25,7 @@ ui <- dashboardPage(
       , menuItem("About", tabName = "about", icon = icon("info-circle"))
     )
   ),
+  
   dashboardBody(
     tabItems(
       tabItem(tabName = "analysis",
@@ -94,7 +97,7 @@ ui <- dashboardPage(
       )),
       tabItem(tabName = "network_prediction",
               fluidRow(
-                column(9, uiOutput("introduction_pred"))
+                column(12, uiOutput("introduction_pred"))
               ),
               fluidRow(
                 column(4, pickerInput("country", "Country", choices = unique(dt.asylum$Country.of.origin[dt.asylum$Country.of.origin != "Unknown"]), options = list(actions_box = TRUE), selected="Afghanistan", multiple=FALSE)),
@@ -103,6 +106,9 @@ ui <- dashboardPage(
               fluidRow(
                 column(9, leafletOutput("mymap_pred")),
                 column(3, uiOutput("pred_info"))
+              ),
+              fluidRow(
+                column(12, uiOutput("description_pred"))
               )
       ),
       tabItem(tabName = "about",
