@@ -57,6 +57,15 @@ server <- function(input, output, session) {
     return(dt.grouped.authority)
   })
   
+  check_dt_size_alert_alert <- function(dt) {
+    
+    if (nrow(na.omit(dt)) == 0) {
+      shinyalert(title = "No Data Available!", 
+                 text = "There is no data matching your criteria.", 
+                 type = "error")
+    }
+  }
+  
   filter_region_analysis <- function(dt.descriptive, asylumIncomeGroupFilter, originIncomeGroupFilter ,
                                      originRegionFilter, asylumRegionFilter){
     # Method to use the filter of the region analysis on a data table.
@@ -74,7 +83,6 @@ server <- function(input, output, session) {
       dt.descriptive <- dt.descriptive[dt.descriptive$Asylum_Region == asylumRegionFilter, ]
     }
     return(dt.descriptive)
-    
   }
   
   # Introduction for Descriptive section
