@@ -131,7 +131,7 @@ server <- function(input, output, session) {
         panel.grid.minor = element_line(color = "gray85"),
         panel.grid.major = element_line(color = "gray75"),
         panel.background = element_rect(fill = "#f5f5f5"),
-        panel.border = element_rect(fill = "#f5f5f5")
+        plot.background = element_rect(fill = "#f5f5f5")
       )
   }
   
