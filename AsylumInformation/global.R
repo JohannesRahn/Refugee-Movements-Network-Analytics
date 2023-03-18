@@ -582,7 +582,7 @@ descriptives <- function() {
     ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_files), size = 0.08) +
     geom_text(aes(label = paste0(round(total.decisions/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
     labs(x = "Countries of Asylum", y = "Total Decisions (in millions)") + # Remove x-axis label
-    ggtitle("Top 5 Countries of Asylum by Total Decisions in 2022") +
+    ggtitle("Top 5 Countries of Asylum by Total Decisions") +
     scale_fill_manual(values = color_palette) + # Use the defined color palette
     theme_minimal() +
     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0), # Increase font size of title
@@ -640,7 +640,7 @@ descriptives <- function() {
     ggimage::geom_image(aes(x = Country.of.origin, y = -1, image = image_files2), size = 0.08) +
     geom_text(aes(label = paste0(round(total.decisions/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
     labs(x = "Countries of Asylum", y = "Total Decisions (in millions)") + # Remove x-axis label
-    ggtitle("Top 5 Countries of Asylum by Total Decisions in 2022") +
+    ggtitle("Top 5 Countries of Origin by Total Decisions") +
     scale_fill_manual(values = color_palette) + # Use the defined color palette
     theme_minimal() +
     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0), # Increase font size of title
@@ -728,10 +728,10 @@ descriptives <- function() {
   # Add the images to the plot using geom_image()
   p4 <- ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), y = rejection.rate, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_file), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_files4), size = 0.08) +
     geom_text(aes(label = round(rejection.rate, 1)), vjust = -0.5, size = 4) + # Add data labels to bars as percentages
     labs(x = "Countries of Asylum", y = "Rejection Rate") + # Remove x-axis label
-    ggtitle("Top 5 Countries of Asylum by Rejection Rate in 2022") +
+    ggtitle("Top 5 Countries of Asylum by Rejection Rate") +
     scale_fill_manual(values = color_palette) + # Use the defined color palette
     theme_minimal() +
     theme(plot.title = element_text(size = 16, face = "bold", hjust = +0.5), # Increase font size of title
@@ -744,8 +744,6 @@ descriptives <- function() {
           axis.text.y = element_blank(), # Remove y-axis tick labels
           axis.text.x = element_blank(), # Remove x-axis tick labels
           plot.margin = unit(c(1, 1, 1, 3), "lines")) # Add space on the right for x-axis labels
-  
-  
   
   
   
