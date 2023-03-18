@@ -28,7 +28,11 @@ server <- function(input, output, session) {
   # Reactive element for descriptive filter:
   descriptive_data <- reactive({
     
-    dt.descriptive <- filter_region_analysis(dt.asylum, input$asylumIncomeGroupFilter, input$originIncomeGroupFilter, input$originRegionFilter, input$asylumRegionFilter)
+    dt.descriptive <- filter_region_analysis(dt.asylum, 
+                                             input$asylumIncomeGroupFilter, 
+                                             input$originIncomeGroupFilter, 
+                                             input$originRegionFilter, 
+                                             input$asylumRegionFilter)
     
     # The descriptive analysis only needs aggregated data
     dt.aggregated.descriptive <- na.omit(aggregate_data(dt.descriptive))
@@ -49,7 +53,12 @@ server <- function(input, output, session) {
   # Reactive element for descriptive filter:
   authority_data <- reactive({
     
-    dt.descriptive <- filter_region_analysis(dt.asylum, input$asylumIncomeGroupFilter, input$originIncomeGroupFilter, input$originRegionFilter, input$asylumRegionFilter)
+    dt.descriptive <- filter_region_analysis(dt.asylum, 
+                                             input$asylumIncomeGroupFilter, 
+                                             input$originIncomeGroupFilter, 
+                                             input$originRegionFilter, 
+                                             input$asylumRegionFilter)
+    
     dt.grouped.authority <- dt.descriptive %>%
       group_by(Authority) %>%
       summarise(Total_decisions = sum(Total.decisions))
@@ -66,7 +75,8 @@ server <- function(input, output, session) {
     }
   }
   
-  filter_region_analysis <- function(dt.descriptive, asylumIncomeGroupFilter, originIncomeGroupFilter ,
+  filter_region_analysis <- function(dt.descriptive, asylumIncomeGroupFilter,
+                                     originIncomeGroupFilter, 
                                      originRegionFilter, asylumRegionFilter){
     # Method to use the filter of the region analysis on a data table.
     if (input$asylumIncomeGroupFilter != "No Filter") {
@@ -87,7 +97,8 @@ server <- function(input, output, session) {
   
   # Introduction for Descriptive section
   output$introduction_descriptives <- renderText({
-    HTML(paste("<h1 style='color:green;'>", "Descriptive Statistics", "</h1>", "<br>"))
+    HTML(paste("<h1 style='color:green;'>", "Descriptive Statistics", 
+               "</h1>", "<br>"))
   })
   
   # Bar chart top 5 asylum countries
@@ -148,16 +159,14 @@ server <- function(input, output, session) {
       geom_line(color = "#1F78B4", size = 1.5, linetype = "solid") +
       labs(title = "Total Decisions per Year",
            x = "Year",
-           y = "Total Decisions") +
-      custom_theme()
+           y = "Total Decisions") + custom_theme()
   })
   output$recognized.decisions.plot <- renderPlot({
     ggplot(descriptive_data(), aes(x = Year, y = Recognized_decisions)) +
       geom_line(color = "#1F78B4", size = 1.5, linetype = "solid") +
       labs(title = "Recognized Decisions per Year",
            x = "Year",
-           y = "Recognized Decisions") +
-      custom_theme()
+           y = "Recognized Decisions") + custom_theme()
   })
   
   output$rejected.decisions.plot <- renderPlot({
@@ -165,8 +174,7 @@ server <- function(input, output, session) {
       geom_line(color = "#E31A1C", size = 1.5, linetype = "solid") +
       labs(title = "Rejected Decisions per Year",
            x = "Year",
-           y = "Rejected Decisions") +
-      custom_theme()
+           y = "Rejected Decisions") + custom_theme()
   })
   
   output$otherwise.closed.decisions.plot <- renderPlot({
@@ -174,8 +182,7 @@ server <- function(input, output, session) {
       geom_line(color = "#33A02C", size = 1.5, linetype = "solid") +
       labs(title = "Otherwise Closed Decisions per Year",
            x = "Year",
-           y = "Otherwise Closed Decisions") +
-      custom_theme()
+           y = "Otherwise Closed Decisions") + custom_theme()
   })
   
   output$total.closed.decisions.plot <- renderPlot({
@@ -183,19 +190,25 @@ server <- function(input, output, session) {
       geom_line(color = "#6A3D9A", size = 1.5, linetype = "solid") +
       labs(title = "Total Closed Decisions per Year",
            x = "Year",
-           y = "Total Closed Decisions") +
-      custom_theme()
+           y = "Total Closed Decisions") + custom_theme()
   })
   output$combined.decisions.plot <- renderPlot({
     ggplot(descriptive_data()) +
-      geom_line(aes(x = Year, y = Rejected_decisions, color = "Rejected Decisions"), size = 1.5, linetype = "solid") +
-      geom_line(aes(x = Year, y = Otherwise_closed, color = "Otherwise Closed Decisions"), size = 1.5, linetype = "solid") +
-      geom_line(aes(x = Year, y = Total_closed, color = "Total Closed Decisions"), size = 1.5, linetype = "solid") +
+      geom_line(aes(x = Year, y = Rejected_decisions, 
+                    color = "Rejected Decisions"), 
+                size = 1.5, linetype = "solid") +
+      geom_line(aes(x = Year, 
+                    y = Otherwise_closed, color = "Otherwise Closed Decisions"), 
+                size = 1.5, linetype = "solid") +
+      geom_line(aes(x = Year, 
+                    y = Total_closed, color = "Total Closed Decisions"), 
+                size = 1.5, linetype = "solid") +
       labs(title = "Closed Decisions per Year",
            x = "Year",
            y = "Decisions") +
-      scale_color_manual(values = c("Rejected Decisions" = "#E31A1C", "Otherwise Closed Decisions" = "#33A02C", "Total Closed Decisions" = "#6A3D9A")) +
-      custom_theme()
+      scale_color_manual(values = c("Rejected Decisions" = "#E31A1C", 
+                                    "Otherwise Closed Decisions" = "#33A02C", 
+                                    "Total Closed Decisions" = "#6A3D9A")) + custom_theme()
   })
   
   output$authority.decisions.plot <- renderPlot({
@@ -321,7 +334,8 @@ server <- function(input, output, session) {
   
   # Description of centrality measures
   output$description_cen <- renderText({
-    HTML(paste("<b>", "Betweenness", "</b>", "<br>", "This measures the extent to which a node lies on the shortest path between other nodes. In the context of your refugee network, this could be interpreted as the extent to which a country plays a critical role in facilitating the movement of refugees between other countries.", "<br>", "<br>", "<b>", "Eigenvector", "</b>", "<br>", "This measures the importance of a node based on the importance of its neighbors. In the context of your refugee network, this could be interpreted as the importance of a country based on the importance of the other countries it is connected to.", "<br>"))
+    HTML(paste("<b>", "Betweenness", "</b>", "<br>", 
+               "This measures the extent to which a node lies on the shortest path between other nodes. In the context of your refugee network, this could be interpreted as the extent to which a country plays a critical role in facilitating the movement of refugees between other countries.", "<br>", "<br>", "<b>", "Eigenvector", "</b>", "<br>", "This measures the importance of a node based on the importance of its neighbors. In the context of your refugee network, this could be interpreted as the importance of a country based on the importance of the other countries it is connected to.", "<br>"))
   })  
   
   # Creates a table with statistical information about circle_graph

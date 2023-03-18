@@ -28,12 +28,15 @@ prepare_data <- function() {
     dt.country.capitals <- read.csv("data/concap.csv", header=TRUE)
     dt.country.meta.info <- read.csv("data/country_region.csv", header=TRUE)
     
-    dt.country.info.merge <- merge(dt.country.income, dt.country.meta.info, by.x= "Code", 
-                                   by.y = "alpha.3")
-    dt.country.info.merge <- merge(dt.country.info.merge, dt.country.capitals, by.x= "alpha.2", by.y="CountryCode")
+    dt.country.info.merge <- merge(dt.country.income, dt.country.meta.info,
+                                   by.x= "Code", by.y = "alpha.3")
+    dt.country.info.merge <- merge(dt.country.info.merge, dt.country.capitals, 
+                                   by.x= "alpha.2", by.y="CountryCode")
     
     # Merge for Asylum Information
-    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.asylum..ISO.", by.y="Code", all.x = TRUE)
+    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, 
+                            by.x="Country.of.asylum..ISO.", by.y="Code", 
+                            all.x = TRUE)
     # renaming column
     names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Asylum_Income"
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Asylum_Capital"
@@ -55,13 +58,17 @@ prepare_data <- function() {
     names(dt.asylum.data)[names(dt.asylum.data)=="sub.region"] <- "Origin_Sub_Region"
     names(dt.asylum.data)[names(dt.asylum.data)=="ContinentName"] <- "Origin_Continent"
     
-    col.order <- c("Country.of.origin", "Country.of.asylum", "Year", "Country.of.origin..ISO.", 
-                   "Country.of.asylum..ISO.", "Authority", "Stage.of.procedure", "Cases...Persons", 
-                   "Recognized.decisions", "Complementary.protection", "Rejected.decisions", 
-                   "Otherwise.closed", "Total.decisions", "Asylum_Income", "Asylum_Capital", 
-                   "Asylum_Capital_Lat", "Asylum_Capital_Long", "Origin_Income", "Origin_Capital", 
-                   "Origin_Capital_Lat", "Origin_Capital_Long", "Asylum_Region", "Asylum_Sub_Region", 
-                   "Asylum_Continent", "Origin_Region", "Origin_Sub_Region", "Origin_Continent", "alpha.2.y", "alpha.2.x")
+    col.order <- c("Country.of.origin", "Country.of.asylum", "Year", 
+                   "Country.of.origin..ISO.", "Country.of.asylum..ISO.", 
+                   "Authority", "Stage.of.procedure", "Cases...Persons", 
+                   "Recognized.decisions", "Complementary.protection", 
+                   "Rejected.decisions", "Otherwise.closed", "Total.decisions", 
+                   "Asylum_Income", "Asylum_Capital", "Asylum_Capital_Lat", 
+                   "Asylum_Capital_Long", "Origin_Income", "Origin_Capital", 
+                   "Origin_Capital_Lat", "Origin_Capital_Long", "Asylum_Region", 
+                   "Asylum_Sub_Region", "Asylum_Continent", "Origin_Region", 
+                   "Origin_Sub_Region", "Origin_Continent", "alpha.2.y", 
+                   "alpha.2.x")
     
     dt.asylum.data <- dt.asylum.data[, col.order]
     
