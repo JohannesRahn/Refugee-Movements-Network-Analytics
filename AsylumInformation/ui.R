@@ -194,7 +194,7 @@ ui <- dashboardPage(
                                    column(6, plotOutput("decisions.by.income", width = "100%")),
                                    column(6, 
                                           HTML('<h3><strong>Description of Decisions by Income</strong></h3>
-                  <p>This pie chart shows which country categories (according to UN income classification) shoulder the <strong>greatest burden of refugee flows</strong>. With an overwhelming majority of <strong>77%, the highest income countries bear the most burden</strong>. However, it is important to keep in mind that often poor neighboring countries of conflict countries bear most of the weight, but no official application is received, or an application is not recorded and therefore does not appear in this dataset.</p>
+                  <p>This pie chart shows which country categories (according to UN income classification) shoulder the <strong>greatest burden of refugee flows</strong>. With an overwhelming majority of <strong>77%, the highest income countries bear the most burden</strong>. However, it is important to keep in mind that often poor neighboring countries of conflict countries bear most of the weight, but no official asylum application is received, or an application is not recorded and therefore does not appear in this dataset.</p>
                   <p><strong>The income levels are defined as follows:</strong></p>
                   <table style="border-collapse: collapse; width: 100%; height: 90px;" border="1">
                   <tbody>
