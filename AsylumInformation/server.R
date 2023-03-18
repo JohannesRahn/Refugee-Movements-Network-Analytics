@@ -34,7 +34,18 @@ server <- function(input, output, session) {
     dt.aggregated.descriptive <- na.omit(aggregate_data(dt.descriptive))
     return(dt.aggregated.descriptive)
   })
-  
+  # Introduction for Descriptive section
+  output$introduction_regional <- renderText({
+    HTML(paste("<h1 style='color:green;'>", "Regional Analysis", "</h1>", "<br>", 
+    "<div>", "The tab presents various visualizations which allow you to 
+               examine the trends and patterns in decision making. 
+               You can apply filters to the data based on asylum income group, 
+               origin income group, origin region, and asylum region. 
+               Additionally, the tab provides key performance indicators 
+               such as total recognized decisions, total rejected decisions, 
+               and the percentage of rejected decisions.", "</div>", "<br>"))
+    
+  })
   # Reactive element for descriptive filter:
   authority_data <- reactive({
     
@@ -113,12 +124,17 @@ server <- function(input, output, session) {
   
   custom_theme <- function() {
     theme_minimal() +
-      theme(plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
-            axis.title = element_text(face = "bold", size = 14),
-            axis.text = element_text(size = 12),
-            panel.grid.minor = element_line(color = "gray85"),
-            panel.grid.major = element_line(color = "gray75"))
+      theme(
+        plot.title = element_text(face = "bold", size = 20, hjust = 0.5),
+        axis.title = element_text(face = "bold", size = 16),
+        axis.text = element_text(size = 16),
+        panel.grid.minor = element_line(color = "gray85"),
+        panel.grid.major = element_line(color = "gray75"),
+        panel.background = element_rect(fill = "#f5f5f5"),
+        panel.border = element_rect(fill = "#f5f5f5")
+      )
   }
+  
   output$yearly.decisions.plot <- renderPlot({
     ggplot(descriptive_data(), aes(x = Year, y = Total_decisions)) +
       geom_line(color = "#1F78B4", size = 1.5, linetype = "solid") +
@@ -242,7 +258,7 @@ server <- function(input, output, session) {
   
   # Introduction to circle network 
   output$introduction_cir <- renderText({
-    HTML(paste("<h1 style='color:blue;'>", "Network Descriptives", "</h1>", "<br>", 
+    HTML(paste("<h1 style='color:green;'>", "Network Descriptives", "</h1>", "<br>", 
                "On this page you can find a complete network graph for the asylum applications worldwide. The country of origin is connected with the country of asylum. The network data is displayed per year, so you can try to find changes in the pattern between the different years. Furthermore, we divided the countries in five different groups. Describe the different groups", "<br>", "<br>"))
   }) 
   
@@ -300,7 +316,7 @@ server <- function(input, output, session) {
   
   # Introduction to network prediction
   output$introduction_pred <- renderText({
-    HTML(paste("<h1 style='color:blue;'>", "Network Prediction", "</h1>", "<br>", "On this page you can find countries with similar patterns.", "<br>", "<br>"))
+    HTML(paste("<h1 style='color:green;'>", "Network Prediction", "</h1>", "<br>", "On this page you can find countries with similar patterns.", "<br>", "<br>"))
   })
   
   # Create a prediction
@@ -319,7 +335,7 @@ server <- function(input, output, session) {
   
   # Introduction for About section
   output$about <- renderText({
-    HTML(paste("<h1 style='color:blue;'>", "About what we do", "</h1>", "<br>"))
+    HTML(paste("<h1 style='color:green;'>", "About what we do", "</h1>", "<br>"))
   })
   
  

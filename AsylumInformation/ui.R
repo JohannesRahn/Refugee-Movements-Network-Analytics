@@ -15,10 +15,10 @@ ui <- dashboardPage(
   
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Descriptive Analysis", tabName = "analysis", 
-               icon = icon("chart-bar"))
-      , menuItem("Regional Analysis", tabName = "region_analysis", 
-                       icon = icon("map-pin"))
+      menuItem("Descriptive Analysis", tabName = "analysis", icon = icon("chart-bar"), 
+               menuSubItem("Overview Analysis", tabName = "analysis"), 
+               menuSubItem("Regional Analysis", tabName = "region_analysis") 
+      )
       , menuItem("Network Characteristics", tabName = "characteristics", icon = icon("globe"))
       , menuItem("Network Exploration", tabName = "network_exploration", icon = icon("code"))
       , menuItem("Network Prediction", tabName = "network_prediction", icon = icon("list-alt"))
@@ -48,7 +48,9 @@ ui <- dashboardPage(
       margin-bottom: 20px;
     }
   ")),
-                
+                fluidRow(
+                  column(12, uiOutput("introduction_regional"))
+                ),
                 fluidRow(
                   column(4,
                          wellPanel(
@@ -107,6 +109,7 @@ ui <- dashboardPage(
               )
       ),
       tabItem(tabName = "analysis",
+              #TODO: grey background for graphs
               fluidPage(
                 tags$style(HTML("
     .well {
@@ -236,4 +239,4 @@ ui <- dashboardPage(
 
 
 # Run the app
-shinyApp(ui = ui, server = server, options = list(height = 1080))
+shinyApp(ui = ui, server = server, options = list(height = 1440))
