@@ -412,7 +412,10 @@ circular.graph <- function(year) {
   g.circ <- graph_from_data_frame(df.edge.relevant, directed = TRUE, vertices = df.node.relevant)
   
   # create the same graph with visNetwork for better visualization
-  visnetwork.refugees <- visNetwork(df.node.relevant, df.edge.relevant, width = "100%", height = "600px") %>%
+  visnetwork.refugees <- visNetwork(df.node.relevant, df.edge.relevant, width = "100%", 
+                                    main = "Asylum Graph", 
+                                    submain = "Filter by Country or Asylum Group",
+                                    height = "600px") %>%
     visOptions(nodesIdSelection = TRUE, selectedBy = "group", highlightNearest = list(enabled = TRUE, degree = 1)) %>% 
     visEdges(physics = FALSE, arrows =list(to = list(enabled = TRUE, scaleFactor = 0.5))) %>% 
     visIgraphLayout(type = "full", layout = "layout_in_circle") %>% 
