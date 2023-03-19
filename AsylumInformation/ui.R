@@ -20,10 +20,10 @@ ui <- dashboardPage(
       
       , menuItem("Regional Analysis", tabName = "region_analysis", 
                  icon = icon("map-pin"))
+      , menuItem("Network Exploration", tabName = "network_exploration", icon = icon("code"))
       , menuItem("Network Characteristics", tabName = "characteristics", icon = icon("globe"),
                  menuSubItem("Origin", tabName = "origin_graph", icon = icon("angle-right")),
                  menuSubItem("Asylum", tabName = "asylum_graph", icon = icon("angle-right")))
-      , menuItem("Network Exploration", tabName = "network_exploration", icon = icon("code"))
       , menuItem("Network Prediction", tabName = "network_prediction", icon = icon("list-alt"))
       , menuItem("About", tabName = "about", icon = icon("info-circle"))
     )
@@ -244,55 +244,37 @@ ui <- dashboardPage(
               
               
       ),
-      tabItem(tabName = "origin_graph",
-              fluidRow(
-                column(9, uiOutput("introduction")),
-              ),
-              fluidRow(
-                column(4, pickerInput("origin", "Country of origin", choices = unique(dt.asylum$Country.of.origin[dt.asylum$Country.of.origin != "Unknown"]), options = list(actions_box = TRUE), selected="Afghanistan", multiple=FALSE)),
-                column(4, pickerInput("Year_input", "Year", choices=unique(dt.asylum$Year)[order(unique(dt.asylum$Year))], options = list(actions_box = TRUE), selected=2017, multiple=FALSE)),
-                column(4, pickerInput("income_level", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))),
-              # column(4, uiOutput("asylum.income.selector"))
-              fluidRow(
-                column(3, uiOutput("info")),
-                column(9,leafletOutput("mymap")),
-              ),
-      ),
-      tabItem(tabName = "asylum_graph",
-              fluidRow(
-                column(9, uiOutput("introduction_asylum")),
-              ),
-              fluidRow(
-                column(4, pickerInput("asylum", "Country of asylum", sorted_choices <- sort(unique(dt.asylum$Country.of.asylum[dt.asylum$Country.of.asylum != "Unknown"]))
-                                      , options = list(actions_box = TRUE), selected="Germany", multiple=FALSE)),
-                column(4, pickerInput("Year_input_asyl", "Year", choices=unique(dt.asylum$Year)[order(unique(dt.asylum$Year))], options = list(actions_box = TRUE), selected=2000, multiple=FALSE)),
-                column(4, pickerInput("income_level_asyl", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))),
-              fluidRow(
-                column(3, uiOutput("info_asylum")),
-                column(9,leafletOutput("mymap_asylum")),
-              ),
-      ),
+      
       tabItem(tabName = "network_exploration",
               fluidRow(
-                column(9, uiOutput("introduction_cir")),
+                column(8, uiOutput("header.cir")),
               ),
               fluidRow(
-                column(4, selectInput("year", "Select year:", choices = as.character(seq(2000, 2022)))),
-                column(3, actionButton("show_graph", "Show Graph")
-                )),
-              fluidRow(
-                column(3, tableOutput("info_circle")),
-                column(9, visNetworkOutput("circular_plot")),
+                column(12, tableOutput("info.circle"))
               ),
               fluidRow(
-                column(3, uiOutput("description_cen")),
-                column(9, tableOutput("betweenness")),
+                column(2, selectInput("year", "Select year:", choices = as.character(seq(2000, 2022)))),
+              ),
+              fluidRow(
+                column(3, uiOutput("introduction.cir")),
+                column(9, visNetworkOutput("circular.plot")),
+              ),
+              fluidRow(
+                column(6, HTML("<br><h2><strong>Details into Centrality Measures</strong></h2><br>"))
+              ),
+              fluidRow(
+                column(12, tableOutput("betweenness")),
               ),
               
               fluidRow(
-                column(4, radioButtons("col", "Choose a column:",
-                                       choices = c("betweenness", "closeness", "eigenvector"), selected = "betweenness")),
-                column(4, tableOutput("statistics.circ"))
+                column(4, uiOutput("description.between")),
+                column(4, uiOutput("description.eigen")),
+                column(4, uiOutput("description.close")),
+              ),
+              fluidRow(
+                column(3, radioButtons("col", "Choose a column:",
+                              choices = c("betweenness", "closeness", "eigenvector"), selected = "betweenness")),
+                column(3, tableOutput("statistics.circ")),
               )),
       tabItem(tabName = "network_prediction",
               fluidRow(
@@ -306,6 +288,34 @@ ui <- dashboardPage(
               ),
               
       ),
+      tabItem(tabName = "origin_graph",
+              fluidRow(
+                column(9, uiOutput("introduction")),
+              ),
+              fluidRow(
+                column(4, pickerInput("origin", "Country of origin", choices = unique(dt.asylum$Country.of.origin[dt.asylum$Country.of.origin != "Unknown"]), options = list(actions_box = TRUE), selected="Afghanistan", multiple=FALSE)),
+                column(4, pickerInput("Year_input", "Year", choices=unique(dt.asylum$Year)[order(unique(dt.asylum$Year))], options = list(actions_box = TRUE), selected=2000, multiple=FALSE)),
+                column(4, pickerInput("income_level", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))),
+              fluidRow(
+                column(3, uiOutput("statistics.origin")),
+                column(9,leafletOutput("mymap")),
+              ),
+      ),
+      tabItem(tabName = "asylum_graph",
+              fluidRow(
+                column(9, uiOutput("introduction.asylum")),
+              ),
+              fluidRow(
+                column(4, pickerInput("asylum_1", "Country of asylum", sorted_choices <- sort(unique(dt.asylum$Country.of.asylum[dt.asylum$Country.of.asylum != "Unknown"]))
+                        , options = list(actions_box = TRUE), selected="Germany", multiple=FALSE)),
+                column(4, pickerInput("Year_input_asyl", "Year", choices=unique(dt.asylum$Year)[order(unique(dt.asylum$Year))], options = list(actions_box = TRUE), selected=2000, multiple=FALSE)),
+                column(4, pickerInput("income_level_asyl", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))),
+              fluidRow(
+                column(3, uiOutput("statistics.asylum")),
+                column(9,leafletOutput("mymap.asylum")),
+              ),
+      ),
+      
       tabItem(tabName = "about",
               uiOutput("about"),
               h6("We are conducting the number of refugees who are seeking for asylum around the world. Our primary purpose is to better protect and help these refugees. Our data is generated from UNHCR (the United High Commissioner for Refugees).UNHCR is a global organization dedicated to saving lives, protecting rights and building a better future for refugees, forcibly displaced communities and stateless people."),
@@ -327,7 +337,9 @@ ui <- dashboardPage(
               h6("Descriptive analysis is a statistical method used to summarize and describe the main features of a dataset. It involves analyzing the data using various statistical measures, such as mean, median, mode, range, standard deviation, and variance, to provide a comprehensive picture of the dataset."),
               h6("Descriptive analysis is often the first step in data analysis and is used to explore and understand the characteristics of the data. It helps to identify patterns, trends, and relationships between variables, as well as any outliers or unusual observations."),
               h6("Descriptive analysis can be used in many fields, including finance, marketing, healthcare, and social sciences, among others. It can be used to summarize data on sales, customer behavior, patient outcomes, and more, to aid decision-making and inform policy."),
-              h6("Overall, descriptive analysis is a powerful tool for understanding and summarizing complex datasets, providing valuable insights that can inform a wide range of applications.")
+              h6("Overall, descriptive analysis is a powerful tool for understanding and summarizing complex datasets, providing valuable insights that can inform a wide range of applications."),
+              h4("Credits"),
+              h6("For the complete network graph in the menu tab \"network exploration\" we based our code on the idea of Philip Ohlsson, find his Git Hub here: https://github.com/philipohlsson/refugee_data_UNHCR")
               
       )
       
