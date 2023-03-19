@@ -2,7 +2,6 @@ source("global.R")
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
-  options(digits = 4)
   dt.asylum <- prepare_data()
   #dt.aggregated.asylum <- aggregate_data(dt.asylum)
   g = graph.data.frame(dt.asylum, directed=TRUE)
@@ -20,7 +19,7 @@ server <- function(input, output, session) {
   # Reactive element for circular graph
   graph_data <- reactive({
     # Calculate the graph based on the data
-    circular_plot <- circular_graph(input$year)
+    circular_plot <- circular.graph(input$year)
     # Return the graph
     return(circular_plot)
   })  
@@ -161,6 +160,7 @@ server <- function(input, output, session) {
            x = "Year",
            y = "Total Decisions") + custom_theme()
   })
+  
   output$recognized.decisions.plot <- renderPlot({
     ggplot(descriptive_data(), aes(x = Year, y = Recognized_decisions)) +
       geom_line(color = "#1F78B4", size = 1.5, linetype = "solid") +
@@ -192,6 +192,7 @@ server <- function(input, output, session) {
            x = "Year",
            y = "Total Closed Decisions") + custom_theme()
   })
+  
   output$combined.decisions.plot <- renderPlot({
     ggplot(descriptive_data()) +
       geom_line(aes(x = Year, y = Rejected_decisions, 
@@ -240,13 +241,13 @@ server <- function(input, output, session) {
 
   # Introduction to network characteristics origin
   output$introduction <- renderText({
-    HTML(paste("<h1 style='color:green;'>", "Network Characteristics", "</h1>", 
-               "<br>", "On the network page you can find a network graph showing the connections between country of origin and the country of asylum. You can select the country of origin, the year and the income level for the country of asylum.", "<br>", "<br>"))
+    HTML(paste("<h1 style='color:green;'>", "Network Characteristics - Country of Origin", "</h1>", 
+               "<br>", "On this page you can find a network graph showing the connections between a specific country of origin and its country of asylums in order to find out more information about how many people got asylum in which country in which year and what the income level of that country is. That helps to understand if people seek asylum in close countries or further away. You can select the country of origin, the year and the income level for the country of asylum", "<br>", "<br>"))
   })
   
   # World map with country of origin network
   output$mymap <- renderLeaflet({
-    graph <- create_asylum_graph(dt.asylum, input$origin, input$Year_input, input$income_level)
+    graph <- create.origin.graph(dt.asylum, input$origin, input$Year_input, input$income_level)
     vert <- graph$vert
     edges <- graph$edges
     g <- graph$g
@@ -263,14 +264,25 @@ server <- function(input, output, session) {
       addLegend(pal = pal, values = edges$weight, title = "Total Decisions", position = "bottomright")
   })
   
-  # Introduction to network characteristics asylum
-  output$introduction_asylum <- renderText({
-    HTML(paste("<h1 style='color:green;'>", "Asylum", "</h1>", "<br>", "On the network page you can find a network graph showing the connections between country of origin and the country of asylum. You can select the country of origin, the year and the income level for the country of asylum.", "<br>", "<br>"))
+  # Statistics to country of origin network
+  output$statistics.origin <- renderTable({
+    # access the igraph return of the graph_data function
+    g <- create.origin.graph(dt.asylum, input$origin, input$Year_input, input$income_level)$graph    
+    data.frame(
+      Statistic = c("Number of vertices", "Number of edges"),
+      Value = c(vcount(g), ecount(g))
+    )
   })
   
-  # World map with country of origin network
-  output$mymap_asylum <- renderLeaflet({
-    graph_asylum <- create_asylum_graph_asylum(dt.asylum, input$asylum, input$Year_input_asyl, input$income_level_asyl)
+  # Introduction to network characteristics asylum
+  output$introduction.asylum <- renderText({
+    HTML(paste("<h1 style='color:green;'>", "Network Characteristics - Country of Asylum", "</h1>", 
+               "<br>", "On this page you can find a network graph showing the connections between a specific country of asylum and its country of origins in order to find out more information where people come from that seek asylum in the specific country. Furthermore, it can be seen if the country has a lot of connections to country of origins and is therefore a popular country of asylum. That helps to identify popular asylum countries and allows for further analysis, why that could be the case. You can select the country of asylum, the year and the income level for the country of asylum", "<br>", "<br>"))
+  })
+  
+  # World map with country of asylum network
+  output$mymap.asylum <- renderLeaflet({
+    graph_asylum <- create.asylum.graph(dt.asylum, input$asylum_1, input$Year_input_asyl, input$income_level_asyl)
     vert <- graph_asylum$vert
     edges <- graph_asylum$edges
     g <- graph_asylum$g
@@ -287,57 +299,73 @@ server <- function(input, output, session) {
       addLegend(pal = pal, values = edges$weight, title = "Total Decisions", position = "bottomright")
   })
   
-  # Statistics to country of origin network
-  output$info <- renderTable({
+  # Statistics to country of asylum network
+  output$statistics.asylum <- renderTable({
     # access the igraph return of the graph_data function
-    g <- create_asylum_graph(dt.asylum, input$origin, input$Year_input, input$income_level)$graph    
+    g_asyl <- create.asylum.graph(dt.asylum, input$asylum_1, input$Year_input_asyl, input$income_level_asyl)$graph    
     data.frame(
-      Statistic = c("Number of vertices", "Number of edges", "Diameter",
-                    "Average Path Length", "Average clustering coefficient", "Average degree"),
-      Value = c(vcount(g), ecount(g), diameter(g),
-                mean(shortest.paths(g)), transitivity(g, type = "average"), degree(g))
+      Statistic = c("Number of vertices", "Number of edges"),
+      Value = c(vcount(g_asyl), ecount(g_asyl))
     )
   })
   
   # Introduction to circle network 
-  output$introduction_cir <- renderText({
-    HTML(paste("<h1 style='color:green;'>", "Network Descriptives", "</h1>", "<br>", 
-               "On this page you can find a complete network graph for the asylum applications worldwide. The country of origin is connected with the country of asylum. The network data is displayed per year, so you can try to find changes in the pattern between the different years. Furthermore, we divided the countries in five different groups. Describe the different groups", "<br>", "<br>"))
+  output$header.cir <- renderText({
+    HTML(paste("<h1 style='color:green;'>", "Network Exploration", "</h1>", "<br>"))
+  }) 
+  
+  # Introduction to circle network 
+  output$introduction.cir <- renderText({
+    HTML(paste("<h4>", "<strong>", "What you find here", "</strong>", "</h4>", "On this webpage, you can view a comprehensive network graph that displays the asylum application patterns across the world. Each country of origin is linked to the countries where people have applied for asylum. Hovering over the lines on the graph shows you the country of origin, the country of asylum, and the total number of asylum applications. You can filter the graph based on the year to observe changes in patterns over time. Additionally, we have categorized countries into five groups, which are explained further below. The graph can be filtered based on country and group, and the filtered connections will be highlighted in different colors to make it easier to analyze. The graph allows to find patterns.", "<br>", "<br>"))
+
   }) 
   
   # Shows circle network
-  output$circular_plot <- renderVisNetwork({
-    # Check if the button has been clicked
-    if (input$show_graph > 0) {
+  output$circular.plot <- renderVisNetwork({
       # Create the visNetwork object using the reactive expression
       graph_data()[[1]]
-    }
   })
   
   # Creates a table with statistical information about circle network
-  output$info_circle <- renderTable({
+  output$info.circle <- renderTable({
     # access the igraph return of the graph_data function
     g <- graph_data()[[2]]
     data.frame(
-      Statistic = c("Number of vertices", "Number of edges", "Diameter",
-                    "Average Path Length", "Average clustering coefficient", "Average degree"),
-      Value = c(vcount(g), ecount(g), diameter(g),
-                mean(shortest.paths(g)), transitivity(g, type = "average"), mean(degree(g)))
-    )
-  })
+      `Number of vertices` = vcount(g),
+      `Number of edges` = ecount(g),
+      `Diameter` = diameter(g),
+      `Average path length` = mean(shortest.paths(g)),
+      `Average clustering coefficient` = transitivity(g, type = "average")
+    ) %>%
+      rename_all(~gsub("\\.", " ", .)) # remove periods in column names
+  }, row.names = FALSE)
   
-  # Description of centrality measures
-  output$description_cen <- renderText({
-    HTML(paste("<b>", "Betweenness", "</b>", "<br>", 
-               "This measures the extent to which a node lies on the shortest path between other nodes. In the context of your refugee network, this could be interpreted as the extent to which a country plays a critical role in facilitating the movement of refugees between other countries.", "<br>", "<br>", "<b>", "Eigenvector", "</b>", "<br>", "This measures the importance of a node based on the importance of its neighbors. In the context of your refugee network, this could be interpreted as the importance of a country based on the importance of the other countries it is connected to.", "<br>"))
+  
+
+ 
+  # Description of centrality measures for circle network
+  output$description.between <- renderText({
+    HTML(paste("<b>", "Betweenness", "</b>", "<br>", "Betweenness is a centrality measure in network analysis that quantifies the extent to which a node lies on the shortest paths between other pairs of nodes in the network. Specifically, it measures the number of times a node appears on the shortest path between any two other nodes in the network. In our context, betweenness centrality could indicate which countries act as intermediaries or \"bridges\" between other countries in the network. A country with high betweenness would be located on many of the shortest paths between other countries, making it an important mediator for the flow of asylum seekers or information between countries. In contrast, a country with low betweenness may have relatively little influence over the flow of information or asylum seekers between other countries in the network.", "<br>", "<br>", "<b>"))
   })  
   
-  # Creates a table with statistical information about circle_graph
-  output$betweenness <- renderTable({
-      # access the igraph return of the graph_data function
-      df <- graph_data()[[3]]
-      df
+  output$description.eigen <- renderText({
+    HTML(paste("<b>", "Eigenvector", "</b>", "<br>", "Eigenvector is a centrality measure that takes into account both the number and importance of a node's direct neighbors in the network. Specifically, it assigns a higher score to a node that is connected to other high-scoring nodes in the network. In our context, eigenvector centrality could indicate which countries are connected to other highly influential countries in the network. A country with high eigenvector centrality would be connected to other countries that are themselves important within the network, potentially giving it a greater degree of influence or authority within the network as a whole. In contrast, a country with low eigenvector centrality may be more peripheral or disconnected from other influential countries in the network.
+
+", "<br>"))
+
+  })  
+  
+  output$description.close <- renderText({
+    HTML(paste("<b>", "Closeness", "</b>", "<br>", "Closeness is a centrality measure that quantifies how quickly and efficiently information can be transmitted from one node to all other nodes in the network. Specifically, closeness measures the reciprocal of the sum of the shortest path distances between a node and all other nodes in the network. In our case closeness indicates which countries are most likely to receive asylum seekers from other countries in the network. A country with high closeness would be able to receive and transmit information more easily to other countries in the network, while a country with low closeness may be more isolated or disconnected from other countries in the network.", "<br>"))
   })
+  
+  # Creates a table with statistical information about circle network
+  output$betweenness <- DT::renderDataTable({
+    # access the igraph return of the graph_data function
+    df <- graph_data()[[3]]
+    DT::datatable(df, rownames = FALSE, options = list(dom = 't'))
+  })
+  
   
   # Show Table with min/max/median values 
   output$statistics.circ <- renderTable({
@@ -346,20 +374,26 @@ server <- function(input, output, session) {
                   "betweenness" = df$betweenness,
                   "closeness" = format(round(df$closeness, 4)),
                   "eigenvector" = df$eigenvector)
-    min_val <- min(col, na.rm = TRUE)
-    max_val <- max(col, na.rm = TRUE)
-    mean_val <- mean(col, na.rm = TRUE)
-    median_val <- median(col, na.rm = TRUE)
-    sd_val <- sd(col, na.rm = TRUE)
+    min.val <- min(col)
+    max.val <- max(col)
+    mean.val <- mean(col, na.rm = TRUE)
+    median.val <- median(col, na.rm = TRUE)
+    sd.val <- round(sd(col), 6)
     statistics <- data.frame(
       Statistic = c("Minimum", "Mean", "Median", "Maximum", "Standard Deviation"),
-      Value = c(min_val, mean_val, median_val, max_val, sd_val)
+      Value = c(min.val, mean.val, median.val, max.val, sd.val)
     )
     statistics
   })
   
+  # Explanation of groups in circular network graph
+  output$groups_circ_graph <- renderText({
+    HTML(paste("<h4>", "Explanation of created groups for the circular network graph", "</h4>", "<br>", "<strong>", "Asylum Country:", "</strong>", "An asylum country is defined as a country that has a total number of refugees of zero and an amount of asylum seekers bigger than zero.", "<br>", "<br>", "<strong>", "Refugee Country:", "</strong>", "A refugee country has an amount of refugees bigger than zero and no asylum seekers that come into the country.", "<br>", "<br>", "<strong>", "Mainly Refugee Country:", "</strong>", "The number of asylum seekers from this country and towards that country is bigger than zero. Furthermore, the ratio of refugees and asylum seekers in that country is greater than 100.", "<br>", "<br>", "<strong>", "Dual Flow Country:", "</strong>", "The number of asylum seekers from this country and towards that country is bigger than zero. Furthermore, the ratio of refugees and asylum seekers in that country is greater than 10.", "<br>", "<br>", "<strong>", "Mainly Asylum Country:", "</strong>", "The number of asylum seekers from this country and towards that country is bigger than zero. The ratio of asylum seekers in that country and refugees from that country is bigger than 100."))
+  })
+  
   # Introduction to network prediction
   output$introduction_pred <- renderText({
+
     HTML(paste("<h1 style='color:green;'>", "Network Prediction", "</h1>", "<br>",
                "On this page we included a Jaccard Index calculation that reveals how 
                similar nations are based on their refugee flows. If two nations are showing similar behaviors, 
