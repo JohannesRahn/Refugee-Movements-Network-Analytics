@@ -20,15 +20,15 @@ ui <- dashboardPage(
 
       menuItem("Descriptive Analysis", tabName = "analysis", icon = icon("chart-bar"),
                menuSubItem("Overview Analysis", tabName = "analysis"),
-               menuSubItem("Regional Analysis", tabName = "region_analysis")
+               menuSubItem("Regional Analysis", tabName = "region_analysis"))
       , menuItem("Network Exploration", tabName = "network_exploration", icon = icon("code"))
       , menuItem("Network Characteristics", tabName = "characteristics", icon = icon("globe"),
                  menuSubItem("Origin", tabName = "origin_graph", icon = icon("angle-right")),
                  menuSubItem("Asylum", tabName = "asylum_graph", icon = icon("angle-right")))
       , menuItem("Network Prediction", tabName = "network_prediction", icon = icon("list-alt"))
-      , menuItem("About", tabName = "about", icon = icon("info-circle"))
+      , menuItem("About", tabName = "about", icon = icon("info-circle")
     )
-  ),
+  )),
   
   dashboardBody(
     tabItems(
@@ -397,15 +397,13 @@ ui <- dashboardPage(
               h6("Overall, descriptive analysis is a powerful tool for understanding and summarizing complex datasets, providing valuable insights that can inform a wide range of applications."),
               h4("Credits"),
               h6("For the complete network graph in the menu tab \"network exploration\" we based our code on the idea of Philip Ohlsson, find his Git Hub here: https://github.com/philipohlsson/refugee_data_UNHCR")
-
-              
       )
-      
     )
   )
 )
 )
 )
+
 
 
 # Run the app

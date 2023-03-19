@@ -305,7 +305,7 @@ server <- function(input, output, session) {
   # Statistics to country of asylum network
   output$statistics.asylum <- renderTable({
     # access the igraph return of the graph_data function
-    g_asyl <- create.asylum.graph(dt.asylum, input$asylum_1, input$Year_input, input$income_level)$graph    
+    g_asyl <- create.asylum.graph(dt.asylum, input$asylum_1, input$Year_input_asyl, input$income_level_asyl)$graph    
     data.frame(
       Statistic = c("Number of vertices", "Number of edges"),
       Value = c(vcount(g_asyl), ecount(g_asyl))
@@ -313,7 +313,6 @@ server <- function(input, output, session) {
   })
   
   # Introduction to circle network 
-
   output$header.cir <- renderText({
     HTML(paste("<h1 style='color:green;'>", "Network Exploration", "</h1>", "<br>"))
   }) 
@@ -343,6 +342,7 @@ server <- function(input, output, session) {
     ) %>%
       rename_all(~gsub("\\.", " ", .)) # remove periods in column names
   }, row.names = FALSE)
+  
   
 
  

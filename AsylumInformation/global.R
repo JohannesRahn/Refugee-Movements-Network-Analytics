@@ -217,7 +217,6 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
   }
   
   dt.location.vertices <- lon.lat()
-  View(dt.location.vertices)
   edges <- dt.asylum.filtered[, c("Country.of.origin", "Country.of.asylum")]
   edges <- rename(edges, c("from" = "Country.of.origin", "to" = "Country.of.asylum"))
   
@@ -229,8 +228,7 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
     g <- set_edge_attr(g, "weight", value= dt.asylum.filtered$Total.decisions + 0.001)
     weights <- E(g)$weight
     plot(g)
-    print(g)
-    
+
     # There is a chosen income level
   } else {
     # Create a new vertex attribute indicating whether the vertex should be included in the income filter
