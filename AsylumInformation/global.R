@@ -48,15 +48,16 @@ prepare_data <- function() {
     
     
     # Merge for Origin Information
-    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.origin..ISO.", by.y="Code", all.x = TRUE)
+    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, 
+                            by.x="Country.of.origin..ISO.", by.y="Code", all.x = TRUE)
     # renaming columns
-    names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Origin_Income"
-    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Origin_Capital"
-    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLatitude"] <- "Origin_Capital_Lat"
-    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Origin_Capital_Long"
-    names(dt.asylum.data)[names(dt.asylum.data)=="region"] <- "Origin_Region"
-    names(dt.asylum.data)[names(dt.asylum.data)=="sub.region"] <- "Origin_Sub_Region"
-    names(dt.asylum.data)[names(dt.asylum.data)=="ContinentName"] <- "Origin_Continent"
+    names(dt.asylum.data)[names(dt.asylum.data) == "Income.group"] <- "Origin_Income"
+    names(dt.asylum.data)[names(dt.asylum.data) == "CapitalName"] <- "Origin_Capital"
+    names(dt.asylum.data)[names(dt.asylum.data) == "CapitalLatitude"] <- "Origin_Capital_Lat"
+    names(dt.asylum.data)[names(dt.asylum.data) == "CapitalLongitude"] <- "Origin_Capital_Long"
+    names(dt.asylum.data)[names(dt.asylum.data) == "region"] <- "Origin_Region"
+    names(dt.asylum.data)[names(dt.asylum.data) == "sub.region"] <- "Origin_Sub_Region"
+    names(dt.asylum.data)[names(dt.asylum.data) == "ContinentName"] <- "Origin_Continent"
     
     col.order <- c("Country.of.origin", "Country.of.asylum", "Year", 
                    "Country.of.origin..ISO.", "Country.of.asylum..ISO.", 
