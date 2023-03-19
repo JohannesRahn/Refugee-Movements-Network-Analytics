@@ -592,7 +592,7 @@ descriptives <- function() {
   
   # create bar chart for top 5 country asylum
   color.palette <- brewer.pal(n = 5, name = "PuBuGn")
-  image.files <- c(
+  images.files.top.asylum <- c(
     "data/Flags/de.png", 
     "data/Flags/us.png", 
     "data/Flags/fr.png", 
@@ -601,7 +601,7 @@ descriptives <- function() {
   )
   
   # Create a new column in the data frame with the image file paths
-  df.top.asylum.5$image.file <- image.files
+  df.top.asylum.5$image.file <- images.files.top.asylum
   
   # Define a function to read the images from file and convert them to grobs
   read.image <- function(file) {
@@ -611,7 +611,7 @@ descriptives <- function() {
   }
   
   # Read the images from file and convert them to grobs
-  images <- lapply(image.files, read.image)
+  images <- lapply(images.files.top.asylum, read.image)
   
   # Convert the column to a vector before passing it to reorder()
   df.top.asylum.5$Country.of.asylum <- unlist(df.top.asylum.5$Country.of.asylum)
@@ -621,7 +621,7 @@ descriptives <- function() {
     x = reorder(Country.of.asylum, -total.decisions), 
     y = total.decisions, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image.files), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = images.files.top.asylum), size = 0.08) +
     geom_text(aes(label = paste0(round(total.decisions/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
     labs(x = "Countries of Asylum", y = "Total Decisions (in millions)") + # Remove x-axis label
     ggtitle("Top 5 Countries of Asylum by Total Decisions") +
@@ -652,7 +652,7 @@ descriptives <- function() {
     top_n(5, total.decisions)
   
   color.palette <- brewer.pal(n = 5, name = "PuBuGn")
-  image.files2 <- c(
+  images.files.top.origin2 <- c(
     "data/Flags/un.png", 
     "data/Flags/af.png", 
     "data/Flags/sy.png", 
@@ -661,7 +661,7 @@ descriptives <- function() {
   )
   
   # Create a new column in the data frame with the image file paths
-  df.top.origin.5$image.file <- image.files2
+  df.top.origin.5$image.file <- images.files.top.origin2
   
   # Define a function to read the images from file and convert them to grobs
   read.image <- function(file) {
@@ -671,7 +671,7 @@ descriptives <- function() {
   }
   
   # Read the images from file and convert them to grobs
-  images <- lapply(image.files2, read.image)
+  images <- lapply(images.files.top.origin2, read.image)
   
   # Convert the column to a vector before passing it to reorder()
   df.top.origin.5$Country.of.origin <- unlist(df.top.origin.5$Country.of.origin)
@@ -680,7 +680,7 @@ descriptives <- function() {
   plot.top.origin <- ggplot(df.top.origin.5, aes(x = reorder(Country.of.origin, -total.decisions), 
                                                  y = total.decisions, fill = Country.of.origin)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.origin, y = -1, image = image.files2), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.origin, y = -1, image = images.files.top.origin2), size = 0.08) +
     geom_text(aes(label = paste0(round(total.decisions/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
     labs(x = "Countries of Asylum", y = "Total Decisions (in millions)") + # Remove x-axis label
     ggtitle("Top 5 Countries of Origin by Total Decisions") +
@@ -705,7 +705,7 @@ descriptives <- function() {
   
   # create bar chart for top 5 country asylum
   # Define a list of local file paths corresponding to the countries in the plot
-  image.files3 <- c(
+  images.files.top.rejection3 <- c(
     "data/Flags/fr.png", 
     "data/Flags/de.png", 
     "data/Flags/gb.png", 
@@ -714,7 +714,7 @@ descriptives <- function() {
   )
   
   # Create a new column in the data frame with the image file paths
-  df.top.rejection5$image.file <- image.files3
+  df.top.rejection5$image.file <- images.files.top.rejection3
   
   # Define a function to read the images from file and convert them to grobs
   read.image <- function(file) {
@@ -724,12 +724,12 @@ descriptives <- function() {
   }
   
   # Read the images from file and convert them to grobs
-  images <- lapply(image.files3, read.image)
+  images <- lapply(images.files.top.rejection3, read.image)
   
   plot.top.rejection <- ggplot(df.top.rejection5, aes(x = reorder(Country.of.asylum, -total.rejections), 
                                                       y = total.rejections, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image.files3), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = images.files.top.rejection3), size = 0.08) +
     geom_text(aes(label = paste0(round(total.rejections/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
     labs(x = "Country with highest absolute rejections", y = "Total Rejections (in millions)") +
     ggtitle("Top 5 Countries with highest rejections") +
@@ -753,7 +753,7 @@ descriptives <- function() {
     arrange(desc(rejection.rate)) %>%
     top_n(5, rejection.rate)
   
-  image.files4 <- c(
+  images.files.top.rejection.rate4 <- c(
     "data/Flags/aw.png", 
     "data/Flags/fm.png", 
     "data/Flags/bs.png", 
@@ -762,16 +762,16 @@ descriptives <- function() {
   )
   
   # Create a new column in the data frame with the image file paths
-  df.top.rejection.rate5$image.file <- image.files4
+  df.top.rejection.rate5$image.file <- images.files.top.rejection.rate4
   
   # Read the images from file and convert them to grobs
-  images <- lapply(image.files4, read.image)
+  images <- lapply(images.files.top.rejection.rate4, read.image)
   
   # Add the images to the plot using geom_image()
   plot.top.rejection.rate <- ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), 
                                                                 y = rejection.rate, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = 0, image = image.files4), 
+    ggimage::geom_image(aes(x = Country.of.asylum, y = 0, image = images.files.top.rejection.rate4), 
                         size = 0.08) +
     geom_text(aes(label = round(rejection.rate, 1)), vjust = -0.5, size = 4) + # Add data labels to bars as percentages
     labs(x = "Countries of Asylum", y = "Rejection Rate") + # Remove x-axis label
