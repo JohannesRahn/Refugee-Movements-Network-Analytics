@@ -1,5 +1,4 @@
 source("server.R")
-#useShinyalert()
 
 dt.asylum <- prepare_data()
 #dt.asylum.aggregated <- aggregate_data(dt.asylum)
