@@ -100,10 +100,7 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   dt.asylum <- prepare_data()
   dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.origin == country & dt.asylum$Year == Year_input, ])
   dt.asylum.filtered <- dt.asylum.filtered[!(dt.asylum.filtered$Country.of.origin == "Unknown" | dt.asylum.filtered$Country.of.asylum == "Unknown"), ]
-  
-  
-  
-  
+
   lon_lat <- function() {
     location.vertices <- data.table(dt.asylum.filtered) 
     location.origin <- location.vertices[, c("Country.of.origin", "Origin_Capital_Lat", "Origin_Capital_Long", "Year", "Origin_Income")]
@@ -116,6 +113,8 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
     
     all.locations <- rbind(location.origin, location.asylum)
     all.locations <- all.locations[, list(unique(all.locations))]
+    #all.locations <- all.locations[!duplicated(name)]
+    
     
     return(all.locations)
   }
@@ -250,9 +249,9 @@ create_asylum_graph_asylum <- function(dt.asylum, country, Year_input, income_le
     unique_filtered_edges <- unique(filtered_edges)
     edges <- unique_filtered_edges
     
-    # Create for income filtered graph
-    g <- graph.data.frame(edges, directed = TRUE, vertices = filtered_vertices)
-    
+    g <- graph.data.frame(filtered_edges, directed = TRUE, vertices = filtered_vertices)
+    g <- set_edge_attr(g, "weight", value = filtered_decisions + 0.001)
+    weights <- E(g)$weight
     
     # Plot the filtered graph
     plot(g)
@@ -432,7 +431,7 @@ circular_graph <- function(year) {
     
   return(list(visnetwork_refugees, g.circ, df.merged, df))}
   
-create_prediction_graph <- function(country) {
+create_prediction_graph <- function(country, in_out) {
   dt.asylum <- prepare_data()
   
   lon_lat <- function() {
@@ -467,9 +466,12 @@ create_prediction_graph <- function(country) {
   weights <- E(g)$weight
   #plot(g)
   
+  if (in_out == "Origin"){
   # Calculate the similarity between all pairs of nodes
-  similarity_matrix <- similarity.jaccard(g, mode = "in")
-  
+    similarity_matrix <- similarity.jaccard(g, mode = "out")
+  } else {
+    similarity_matrix <- similarity.jaccard(g, mode = "in")
+  }
   # Set the diagonal to zero (because we don't want to predict self-loops)
   diag(similarity_matrix) <- 0
   
@@ -487,19 +489,19 @@ create_prediction_graph <- function(country) {
   predicted_edges$from <- vertex_lookup[predicted_edges$from]
   predicted_edges$to <- vertex_lookup[predicted_edges$to]
   
-  predicted_edges <- predicted_edges[(predicted_edges$from == country), ]
-  predicted_edges <- predicted_edges[1:n, 1:2]
+  if (in_out == "Origin"){
+    predicted_edges <- predicted_edges[(predicted_edges$from == country), ]
+  } else {
+    predicted_edges <- predicted_edges[(predicted_edges$to == country), ]
+  }
+  predicted_edges_filter <- predicted_edges[1:n, 1:2]
   
   # Create a new directed graph with the predicted edges
-  g_predicted_edges <- graph_from_edgelist(as.matrix(predicted_edges), directed = TRUE)
-  E(g_predicted_edges)$weight <- predicted_edges_weights[1:n]
+  g_predicted_edges <- graph_from_edgelist(as.matrix(predicted_edges_filter), directed = TRUE)
   
-  # m.predicted.edges <- as.matrix(cocitation(graph_pred) * (1-get.adjacency(graph_pred)))
-  # g.predicted.edges <- graph_from_adjacency_matrix(m.predicted.edges,
-  #                                                  mode = "directed",
-  #                                                  weighted = TRUE)
-  # E(g.predicted.edges)$width <- E(g.predicted.edges)$weight * 2
-  # plot(g.predicted.edges)
+  # Create a new directed graph with the predicted edges
+  g_predicted_edges <- set_edge_attr(g_predicted_edges, "weight", value = predicted_edges$predicted_edges_weights[1:n])
+  weights <- E(g_predicted_edges)$weight
   
   gg_pred <- get.data.frame(g_predicted_edges, "both")
   gg_vert <- gg_pred$vertices$name
@@ -533,7 +535,7 @@ create_prediction_graph <- function(country) {
   })
   
   edges_sp <- do.call(rbind, edges_sp)
-  return(list(graph = g_predicted_edges, vert = gg_vert_pred, edges = edges, edges_lines = edges_sp))
+  return(list(g_old = g, graph = g_predicted_edges, vert = gg_vert_pred, edges = edges, edges_lines = edges_sp))
 }
 
 preparation_rejections <- function(){
