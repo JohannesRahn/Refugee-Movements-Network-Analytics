@@ -2,15 +2,15 @@ source("global.R")
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
-  dt.asylum <- prepare_data()
-  #dt.aggregated.asylum <- aggregate_data(dt.asylum)
+  dt.asylum <- prepare.data()
+  #dt.aggregated.asylum <- aggregate.data(dt.asylum)
   g = graph.data.frame(dt.asylum, directed=TRUE)
   descriptives.reac <- descriptives()
   
   
   # Reactive element to change origin and asylum column as character
   dt.asylum.st <- reactive({
-    dt <- prepare_data()
+    dt <- prepare.data()
     dt$Country.of.origin <- as.character(dt$Country.of.origin)
     dt$Country.of.asylum <- as.character(dt$Country.of.asylum)
     dt
@@ -27,14 +27,14 @@ server <- function(input, output, session) {
   # Reactive element for descriptive filter:
   descriptive_data <- reactive({
     
-    dt.descriptive <- filter_region_analysis(dt.asylum, 
+    dt.descriptive <- filter.region.analysis(dt.asylum, 
                                              input$asylumIncomeGroupFilter, 
                                              input$originIncomeGroupFilter, 
                                              input$originRegionFilter, 
                                              input$asylumRegionFilter)
     
     # The descriptive analysis only needs aggregated data
-    dt.aggregated.descriptive <- na.omit(aggregate_data(dt.descriptive))
+    dt.aggregated.descriptive <- na.omit(aggregate.data(dt.descriptive))
     return(dt.aggregated.descriptive)
   })
   # Introduction for Descriptive section
@@ -50,9 +50,9 @@ server <- function(input, output, session) {
     
   })
   # Reactive element for descriptive filter:
-  authority_data <- reactive({
+  authority.data <- reactive({
     
-    dt.descriptive <- filter_region_analysis(dt.asylum, 
+    dt.descriptive <- filter.region.analysis(dt.asylum, 
                                              input$asylumIncomeGroupFilter, 
                                              input$originIncomeGroupFilter, 
                                              input$originRegionFilter, 
@@ -65,16 +65,7 @@ server <- function(input, output, session) {
     return(dt.grouped.authority)
   })
   
-  check_dt_size_alert_alert <- function(dt) {
-    
-    if (nrow(na.omit(dt)) == 0) {
-      shinyalert(title = "No Data Available!", 
-                 text = "There is no data matching your criteria.", 
-                 type = "error")
-    }
-  }
-  
-  filter_region_analysis <- function(dt.descriptive, asylumIncomeGroupFilter,
+  filter.region.analysis <- function(dt.descriptive, asylumIncomeGroupFilter,
                                      originIncomeGroupFilter, 
                                      originRegionFilter, asylumRegionFilter){
     # Method to use the filter of the region analysis on a data table.
@@ -91,6 +82,8 @@ server <- function(input, output, session) {
     if (input$asylumRegionFilter != "No Filter") {
       dt.descriptive <- dt.descriptive[dt.descriptive$Asylum_Region == asylumRegionFilter, ]
     }
+    #Check for the size of the data table and throws an error if it is empty
+    check.dt.size.alert(dt.descriptive)
     return(dt.descriptive)
   }
   
@@ -213,7 +206,7 @@ server <- function(input, output, session) {
   })
   
   output$authority.decisions.plot <- renderPlot({
-    ggplot(authority_data(), aes(x = Authority, y = Total_decisions)) +
+    ggplot(authority.data(), aes(x = Authority, y = Total_decisions)) +
     geom_bar(stat = "identity", fill = "steelblue") +
     labs(title = "Total Decisions by Asylum Authority",
          x = "Asylum Authority",
@@ -246,8 +239,8 @@ server <- function(input, output, session) {
   })
   
   # World map with country of origin network
-  output$mymap <- renderLeaflet({
-    graph <- create.origin.graph(dt.asylum, input$origin, input$Year_input, input$income_level)
+  output$map.origin <- renderLeaflet({
+    graph <- create.origin.graph(dt.asylum, input$origin, input$Year_input, input$income.level)
     vert <- graph$vert
     edges <- graph$edges
     g <- graph$g
@@ -267,7 +260,7 @@ server <- function(input, output, session) {
   # Statistics to country of origin network
   output$statistics.origin <- renderTable({
     # access the igraph return of the graph_data function
-    g <- create.origin.graph(dt.asylum, input$origin, input$Year_input, input$income_level)$graph    
+    g <- create.origin.graph(dt.asylum, input$origin, input$Year_input, input$income.level)$graph    
     data.frame(
       Statistic = c("Number of vertices", "Number of edges"),
       Value = c(vcount(g), ecount(g))
@@ -281,12 +274,12 @@ server <- function(input, output, session) {
   })
   
   # World map with country of asylum network
-  output$mymap.asylum <- renderLeaflet({
-    graph_asylum <- create.asylum.graph(dt.asylum, input$asylum_1, input$Year_input_asyl, input$income_level_asyl)
-    vert <- graph_asylum$vert
-    edges <- graph_asylum$edges
-    g <- graph_asylum$g
-    edges_lines <- graph_asylum$edges_lines
+  output$map.asylum <- renderLeaflet({
+    graph.asylum <- create.asylum.graph(dt.asylum, input$asylum_1, input$Year_input_asyl, input$income.level_asyl)
+    vert <- graph.asylum$vert
+    edges <- graph.asylum$edges
+    g <- graph.asylum$g
+    edges_lines <- graph.asylum$edges_lines
     
     edges_df <- SpatialLinesDataFrame(edges_lines, edges)
     
@@ -302,7 +295,7 @@ server <- function(input, output, session) {
   # Statistics to country of asylum network
   output$statistics.asylum <- renderTable({
     # access the igraph return of the graph_data function
-    g_asyl <- create.asylum.graph(dt.asylum, input$asylum_1, input$Year_input_asyl, input$income_level_asyl)$graph    
+    g_asyl <- create.asylum.graph(dt.asylum, input$asylum_1, input$Year_input_asyl, input$income.level_asyl)$graph    
     data.frame(
       Statistic = c("Number of vertices", "Number of edges"),
       Value = c(vcount(g_asyl), ecount(g_asyl))
@@ -414,7 +407,7 @@ server <- function(input, output, session) {
 
 
   # Create a prediction
-  output$mymap_pred <- renderLeaflet({
+  output$map.origin_pred <- renderLeaflet({
     graph.pred <- create_prediction_graph(input$country, input$in_out)
     vert <- graph.pred$vert
     edges <- graph.pred$edges

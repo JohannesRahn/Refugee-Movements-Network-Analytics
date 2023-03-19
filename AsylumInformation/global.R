@@ -1,3 +1,7 @@
+source("setup.R")
+# Checks if packages are installed and if not loads them
+check.and.install.packages()
+
 library(shiny)
 library(shinydashboard)
 library(shinyalert)
@@ -17,71 +21,20 @@ library(ggimage)
 library(png)
 library(grid)
 
-prepare_data <- function() {
+prepare.data <- function() {
   
   if (file.exists("data/asylum_data.RData")) {
     load("data/asylum_data.RData")
     
   } else {
-    dt.asylum.data <- read.csv("data/asylum-decisions.csv", header=TRUE, sep=";")
-    dt.country.income <- read.csv("data/income_data.csv", header=TRUE)
-    dt.country.capitals <- read.csv("data/concap.csv", header=TRUE)
-    dt.country.meta.info <- read.csv("data/country_region.csv", header=TRUE)
-    
-    dt.country.info.merge <- merge(dt.country.income, dt.country.meta.info,
-                                   by.x= "Code", by.y = "alpha.3")
-    dt.country.info.merge <- merge(dt.country.info.merge, dt.country.capitals, 
-                                   by.x= "alpha.2", by.y="CountryCode")
-    
-    # Merge for Asylum Information
-    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, 
-                            by.x="Country.of.asylum..ISO.", by.y="Code", 
-                            all.x = TRUE)
-    # renaming column
-    names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Asylum_Income"
-    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Asylum_Capital"
-    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLatitude"] <- "Asylum_Capital_Lat"
-    names(dt.asylum.data)[names(dt.asylum.data)=="CapitalLongitude"] <- "Asylum_Capital_Long"
-    names(dt.asylum.data)[names(dt.asylum.data)=="region"] <- "Asylum_Region"
-    names(dt.asylum.data)[names(dt.asylum.data)=="sub.region"] <- "Asylum_Sub_Region"
-    names(dt.asylum.data)[names(dt.asylum.data)=="ContinentName"] <- "Asylum_Continent"
-    
-    
-    # Merge for Origin Information
-    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, 
-                            by.x="Country.of.origin..ISO.", by.y="Code", all.x = TRUE)
-    # renaming columns
-    names(dt.asylum.data)[names(dt.asylum.data) == "Income.group"] <- "Origin_Income"
-    names(dt.asylum.data)[names(dt.asylum.data) == "CapitalName"] <- "Origin_Capital"
-    names(dt.asylum.data)[names(dt.asylum.data) == "CapitalLatitude"] <- "Origin_Capital_Lat"
-    names(dt.asylum.data)[names(dt.asylum.data) == "CapitalLongitude"] <- "Origin_Capital_Long"
-    names(dt.asylum.data)[names(dt.asylum.data) == "region"] <- "Origin_Region"
-    names(dt.asylum.data)[names(dt.asylum.data) == "sub.region"] <- "Origin_Sub_Region"
-    names(dt.asylum.data)[names(dt.asylum.data) == "ContinentName"] <- "Origin_Continent"
-    
-    col.order <- c("Country.of.origin", "Country.of.asylum", "Year", 
-                   "Country.of.origin..ISO.", "Country.of.asylum..ISO.", 
-                   "Authority", "Stage.of.procedure", "Cases...Persons", 
-                   "Recognized.decisions", "Complementary.protection", 
-                   "Rejected.decisions", "Otherwise.closed", "Total.decisions", 
-                   "Asylum_Income", "Asylum_Capital", "Asylum_Capital_Lat", 
-                   "Asylum_Capital_Long", "Origin_Income", "Origin_Capital", 
-                   "Origin_Capital_Lat", "Origin_Capital_Long", "Asylum_Region", 
-                   "Asylum_Sub_Region", "Asylum_Continent", "Origin_Region", 
-                   "Origin_Sub_Region", "Origin_Continent", "alpha.2.y", 
-                   "alpha.2.x")
-    
-    dt.asylum.data <- dt.asylum.data[, col.order]
-    
-    save(dt.asylum.data, file="data/asylum_data.RData")
-    
-    
+    initialize.data()
+    load("data/asylum_data.RData")
   }
   # Return prepared data
   return(dt.asylum.data)
 }
 
-aggregate_data <- function(dt.asylum) {
+aggregate.data <- function(dt.asylum) {
   #This function sums up all information for each year
   dt.aggregated.asylum <- dt.asylum %>%
     group_by(Year) %>%
@@ -97,8 +50,17 @@ aggregate_data <- function(dt.asylum) {
   return(dt.aggregated.asylum)
 }
 
-create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
-  dt.asylum <- prepare_data()
+check.dt.size.alert <- function(dt) {
+  #Check for the size of the data table and throws an error if it is empty
+  if (nrow(na.omit(dt)) == 0) {
+    shinyalert(title = "No Data Available!", 
+               text = "There is no data matching your criteria.", 
+               type = "error")
+  }
+}
+
+create.origin.graph <- function(dt.asylum, country, Year_input, income.level) {
+  dt.asylum <- prepare.data()
   dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.origin == country & dt.asylum$Year == Year_input, ])
   dt.asylum.filtered <- dt.asylum.filtered[!(dt.asylum.filtered$Country.of.origin == "Unknown" | dt.asylum.filtered$Country.of.asylum == "Unknown"), ]
   
@@ -118,7 +80,6 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
     dt.all.locations <- rbind(dt.location.origin, dt.location.asylum)
     dt.all.locations <- dt.all.locations[, list(unique(dt.all.locations))]
     
-    
     return(dt.all.locations)
   }
   
@@ -131,7 +92,7 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
   to.idx <- match(edges$to, dt.location.vertices$name)
   
   # If to check if the filtering is for all income levels or specific one
-  if (income_level == "All levels"){
+  if (income.level == "All levels"){
     # Create the graph
     g <- graph.data.frame(edges, directed = TRUE, vertices = dt.location.vertices)
     g <- set_edge_attr(g, "weight", value= dt.asylum.filtered$Total.decisions + 0.001)
@@ -141,15 +102,18 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
     # There is a chosen income level
   } else {
     # Create a new vertex attribute indicating whether the vertex should be included in the income filter
-    filtered.vertices <- subset(dt.location.vertices, income %in% c(income_level) | type)
+    filtered.vertices <- subset(dt.location.vertices, income %in% c(income.level) | type)
     
     # add error message when dataframe is empty
     if (nrow(filtered.vertices) == 0) {
       shinyalert("No Data Available!", "There is no data matching your criteria.", type = "error")}
-    # add error message when dataframe just contains the origin country
-    if (nrow(filtered.vertices) == 1 & filtered.vertices$type == TRUE) {
-      shinyalert("No Data Available!", "There is no data matching your criteria.", type = "error")}
     
+    # add error message when dataframe just contains the origin country
+    if (nrow(filtered.vertices) <= 1 & all(filtered.vertices$type == TRUE)) {
+      shinyalert("No Data Available!", 
+                 "There is no data matching your criteria.", 
+                 type = "error")
+    }
     
     # Create a vector with names
     filtered.vertices.vec <- filtered.vertices$name
@@ -207,8 +171,8 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
   return(list(graph = g, vert = vert, edges = edges, edges_lines = edges.sp))
 }
 
-create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
-  dt.asylum <- prepare_data()
+create.asylum.graph <- function(dt.asylum, country, Year_input, income.level) {
+  dt.asylum <- prepare.data()
   
   dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.asylum == country & dt.asylum$Year == Year_input, ])
   dt.asylum.filtered <- dt.asylum.filtered[!(dt.asylum.filtered$Country.of.origin == "Unknown " | dt.asylum.filtered$Country.of.asylum == "Unknown " | dt.asylum.filtered$Country.of.origin == "Stateless"  | dt.asylum.filtered$Country.of.asylum == "Stateless"), ]
@@ -238,7 +202,7 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
   
   
   # If to check if the filtering is for all income levels or specific one
-  if (income_level == "All levels"){
+  if (income.level == "All levels"){
     # Create the graph
     g <- graph.data.frame(edges, directed = TRUE, vertices = dt.location.vertices)
     g <- set_edge_attr(g, "weight", value= dt.asylum.filtered$Total.decisions + 0.001)
@@ -248,7 +212,7 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
     # There is a chosen income level
   } else {
     # Create a new vertex attribute indicating whether the vertex should be included in the income filter
-    filtered.vertices <- subset(dt.location.vertices, income %in% c(income_level) | type == FALSE)
+    filtered.vertices <- subset(dt.location.vertices, income %in% c(income.level) | type == FALSE)
     
     # Create a vector with names
     filtered.vertices.vec <- filtered.vertices$name
@@ -281,16 +245,18 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
   
   edges <- gg$edges
   
+  check.dt.size.alert(edges)
+  
   # Loop through the columns of the edges data frame
   edges.sp <- apply(edges, 1, function(row) {
     from_vert <- vert[vert$name == row["from"], ]
     to_vert <- vert[vert$name == row["to"], ]
+
     
     # Check if either vertex is missing, and skip this edge if so
     if (nrow(from_vert) == 0 || nrow(to_vert) == 0) {
       return(NULL)
     }
-    
     as(rbind(from_vert, to_vert), "SpatialLines")
   })
   
@@ -309,7 +275,7 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
 
 
 circular.graph <- function(year) {
-  dt.asylum <- prepare_data()
+  dt.asylum <- prepare.data()
   # Filter out refugees that are stateless or where the origin is unknown
   dt.asylum.filtered <- dt.asylum[!(dt.asylum$Country.of.origin == "Unknown " | dt.asylum$Country.of.asylum == "Unknown " | dt.asylum$Country.of.origin == "Stateless"  | dt.asylum$Country.of.asylum == "Stateless"), ]
   
@@ -457,7 +423,7 @@ circular.graph <- function(year) {
   return(list(visnetwork.refugees, g.circ, df.statistics.merged, df.statistics))}
 
 create_prediction_graph <- function(country, in_out) {
-  dt.asylum <- prepare_data()
+  dt.asylum <- prepare.data()
   
   lon_lat <- function() {
     dt.location.vertices <- data.table(dt.asylum) 
@@ -578,7 +544,7 @@ create_prediction_graph <- function(country, in_out) {
 }
 
 preparation_rejections <- function(){
-  dt.asylum <- prepare_data()
+  dt.asylum <- prepare.data()
   df.top.rejection <- dt.asylum %>%
     group_by(Country.of.asylum) %>%
     summarize(total.decisions = sum(Total.decisions),

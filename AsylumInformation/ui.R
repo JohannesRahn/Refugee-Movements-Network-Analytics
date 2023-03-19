@@ -1,6 +1,6 @@
 source("server.R")
 
-dt.asylum <- prepare_data()
+dt.asylum <- prepare.data()
 #dt.asylum.aggregated <- aggregate_data(dt.asylum)
 # dt.asylum$Country.of.origin <- as.character(dt.asylum$Country.of.origin)
 ui <- dashboardPage(
@@ -366,10 +366,10 @@ ui <- dashboardPage(
               fluidRow(
                 column(4, pickerInput("origin", "Country of origin", choices = unique(dt.asylum$Country.of.origin[dt.asylum$Country.of.origin != "Unknown"]), options = list(actions_box = TRUE), selected="Afghanistan", multiple=FALSE)),
                 column(4, pickerInput("Year_input", "Year", choices=unique(dt.asylum$Year)[order(unique(dt.asylum$Year))], options = list(actions_box = TRUE), selected=2000, multiple=FALSE)),
-                column(4, pickerInput("income_level", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))),
+                column(4, pickerInput("income.level", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))),
               fluidRow(
                 column(3, uiOutput("statistics.origin")),
-                column(9,leafletOutput("mymap")),
+                column(9,leafletOutput("map.origin")),
               ),
       ),
       tabItem(tabName = "asylum_graph",
@@ -380,10 +380,10 @@ ui <- dashboardPage(
                 column(4, pickerInput("asylum_1", "Country of asylum", sorted_choices <- sort(unique(dt.asylum$Country.of.asylum[dt.asylum$Country.of.asylum != "Unknown"]))
                         , options = list(actions_box = TRUE), selected="Germany", multiple=FALSE)),
                 column(4, pickerInput("Year_input_asyl", "Year", choices=unique(dt.asylum$Year)[order(unique(dt.asylum$Year))], options = list(actions_box = TRUE), selected=2000, multiple=FALSE)),
-                column(4, pickerInput("income_level_asyl", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))),
+                column(4, pickerInput("income.level_asyl", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))),
               fluidRow(
                 column(3, uiOutput("statistics.asylum")),
-                column(9,leafletOutput("mymap.asylum")),
+                column(9,leafletOutput("map.asylum")),
               ),
       ),
       
@@ -397,7 +397,7 @@ ui <- dashboardPage(
                 column(4, pickerInput("in_out", "Asylum or origin", choices=c("Asylum", "Origin"), options = list(actions_box = TRUE), selected="Asylum", multiple=FALSE)),
               ),
               fluidRow(
-                column(9, leafletOutput("mymap_pred")),
+                column(9, leafletOutput("map.origin_pred")),
                 column(3, uiOutput("pred_info"))
               ),
               fluidRow(
