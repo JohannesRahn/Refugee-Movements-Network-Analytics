@@ -67,14 +67,14 @@ ui <- dashboardPage(
                          wellPanel(
                            h3("Total Rejected Decisions") %>% 
                              tagAppendAttributes(class = 'kpi-head'),
-                           span(textOutput("totalRejected")) %>% 
+                           textOutput("totalRejected") %>% 
                              tagAppendAttributes(class = 'kpi')
                          )),
                   column(4,
                          wellPanel(
                            h3("Percentage of Rejected Decisions") %>% 
                              tagAppendAttributes(class = 'kpi-head'),
-                           span(textOutput("rejectedPercent")) %>% 
+                           textOutput("rejectedPercent") %>% 
                              tagAppendAttributes(class = 'kpi')
                          ))
                 ),
