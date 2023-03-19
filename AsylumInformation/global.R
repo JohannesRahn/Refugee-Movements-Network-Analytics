@@ -142,8 +142,13 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
     # Create a new vertex attribute indicating whether the vertex should be included in the income filter
     filtered.vertices <- subset(dt.location.vertices, income %in% c(income_level) | type)
     
-    if (nrow(filtered_vertices) == 0) {
+    # add error message when dataframe is empty
+    if (nrow(filtered.vertices) == 0) {
       shinyalert("No Data Available!", "There is no data matching your criteria.", type = "error")}
+    # add error message when dataframe just contains the origin country
+    if (nrow(filtered.vertices) == 1 & filtered.vertices$type == TRUE) {
+      shinyalert("No Data Available!", "There is no data matching your criteria.", type = "error")}
+    
     
     # Create a vector with names
     filtered.vertices.vec <- filtered.vertices$name
