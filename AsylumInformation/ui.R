@@ -447,37 +447,75 @@ ui <- dashboardPage(
     "),
           tags$div(
             class = "about-text",
-            uiOutput("about"),
-              div("We are conducting the number of refugees who are seeking for asylum around the world. Our primary purpose is to better protect and help these refugees. Our data is generated from UNHCR (the United High Commissioner for Refugees).UNHCR is a global organization dedicated to saving lives, protecting rights and building a better future for refugees, forcibly displaced communities and stateless people."),
-              h2("What We Do"),
-              div("Base on these data we can get a grasp of how many refugees are there around the world? We can track the number of people forced to flee and use data and statistics to inform and optimize our work and the work of our partners to better protect, assist and provide solutions. So when for example a major displacement crisis erupts, we can predict how many people need help, what kind of help they need and how many staff we must deploy."),
-              div("For statistics and operational data that are essential for UNHCR operations, we collect and process data in a number of different systems that are fit for purpose. Our Population Statistics Database, for example, carries information on country of asylum, country of origin and demographics on people of concern to UNHCR – refugees, asylum seekers, returned refugees, internally displaced and stateless people."),
-              div("We work with data and statistics, which are helping us to understand important information to save, protect and improve the lives of refugees, other forcibly displaced and stateless people. Based on good data, we can make informed decisions around our work and better plan for future operations. Data also allows us to demonstrate accountability to beneficiaries, governments, partners and donors in a tangible and comparable way."),
-              div("The collection and use of refugee data are mandated by the 1951 Refugee Convention and by the Statute of the Office of the High Commissioner for Refugees. The confidentiality of refugee data and related information is highly respected by UNHCR and our partners and the processing and protection of personal data are anchored in UNHCR’s Data Protection Policy."),
-              h2("History Of UNHCR"),
-              div("The office of the United Nations High Commissioner for Refugees (UNHCR) was created in 1950, during the aftermath of the Second World War, to help millions of Europeans who had fled or lost their homes. We had three years to complete our work and then disband."),
-              div("In 1954, UNHCR won the Nobel Peace Prize for its groundbreaking work in Europe. But it was not long before we faced our next major emergency."),
-              div("In 1956, during the Hungarian Revolution, 200,000 fled to neighbouring Austria. Recognizing the Hungarians as 'prima facie' refugees, UNHCR led efforts to resettle them. This uprising and its aftermath shaped the way humanitarian organizations would deal with refugee crises in the future."),
-              div("During the 1960s, the decolonization of Africa produced the first of that continent’s numerous refugee crises. We also helped uprooted people in Asia and Latin America over the following two decades. In 1981, we received a second Nobel Peace Prize for what had become worldwide assistance to refugees."),
-              div("The start of the 21st century has seen UNHCR help with major refugee crises in Africa, the Middle East and Asia. We have also been asked to use our expertise to help many internally displaced by conflict and expanded our role in helping stateless people. In some parts of the world, such as Africa and Latin America, the 1951 Refugee Convention has been strengthened by additional regional legal instruments."),
-              div("UNHCR now has more than 18,879 personnel working in 137 countries. Our budget, which in its first year was US$300,000, grew to US$8.6 billion in 2019. In 2020, we marked our 70th anniversary. During our lifetime, we have helped well over 50 million refugees to successfully restart their lives."), h2("Who Do We Help"),
-              div("Our primary purpose is to safeguard the rights and well-being of people who have been forced to flee. Together with partners and communities, we work to ensure that everybody has the right to seek asylum and find safe refuge in another country. We also strive to secure lasting solutions."),
-              div("They include refugees, returnees, stateless people, the internally displaced and asylum-seekers. Our protection, shelter, health and education has been crucial, healing broken pasts and building brighter futures."),
-              h2("Descriptive Analysis"),
-
-              h6("Descriptive analysis is a statistical method used to summarize and describe the main features of a dataset. It involves analyzing the data using various statistical measures, such as mean, median, mode, range, standard deviation, and variance, to provide a comprehensive picture of the dataset."),
-              h6("Descriptive analysis is often the first step in data analysis and is used to explore and understand the characteristics of the data. It helps to identify patterns, trends, and relationships between variables, as well as any outliers or unusual observations."),
-              h6("Descriptive analysis can be used in many fields, including finance, marketing, healthcare, and social sciences, among others. It can be used to summarize data on sales, customer behavior, patient outcomes, and more, to aid decision-making and inform policy."),
-              h6("Overall, descriptive analysis is a powerful tool for understanding and summarizing complex datasets, providing valuable insights that can inform a wide range of applications."),
-              h4("Credits"),
-              h6("For the complete network graph in the menu tab \"network exploration\" we based our code on the idea of Philip Ohlsson, find his Git Hub here: https://github.com/philipohlsson/refugee_data_UNHCR")
+            fluidRow(
+              column(12, HTML('
+                  <p><img src=
+                  "https://www.unhcr.org/innovation/wp-content/uploads/2019/07/unhcr-logo-horizontal.svg" 
+                  alt="" width="254" height="61" /></p>
+                  <h2><strong>Introduction to the UNHCR Refugee Data ShinyApp</strong></h2>')),
+              column(8, HTML('
+<p>Welcome to our UNHCR Refugee Data ShinyApp, a sophisticated
+and comprehensive tool designed to provide valuable insight and analysis into
+global refugee data. This ShinyApp has been carefully developed using R, a 
+versatile and powerful statistical programming language, and is based on 
+<a href="https://www.unhcr.org/refugee-statistics/download/?url=K6fWq2" 
+target="_blank">data provided by the United Nations High Commissioner for 
+Refugees (UNHCR) from 2000 to 2022</a>. Our primary goal is to facilitate 
+a deeper understanding of the intricate web of relationships between 
+countries of origin and countries of asylum. We aim to identify trends and 
+patterns in refugee migration and provide essential information that can guide 
+policy decisions and enhance efforts to support refugees worldwide. Within this 
+ShinyApp, we have carefully organised the data into different sections, each 
+focusing on a different aspect of refugee migration.</p>
+<h2><strong>Descriptive Analysis</strong></h2>
+<p>The <strong>Overview Analysis</strong> section provides a thorough overview 
+of the data, highlighting key findings in several areas such as total asylum, 
+total origin, total rejections, total rejection rate and decisions by income. 
+These analyses highlight the important role played by countries such as Germany 
+and the United States in hosting refugees, the impact of conflicts in the Middle 
+East on refugee migration patterns, and the distribution of refugee hosting 
+responsibility across income groups as defined by the United Nations.</p>
+<p>In addition, the <strong>Regional Analysis</strong> section allows users 
+to examine trends and patterns in decision-making by applying filters based on 
+various factors such as asylum seeker income group, origin income group, origin 
+region and asylum region. This section also provides key performance indicators, 
+including the total number of decisions granted, the total number of decisions 
+refused and the percentage of decisions refused.</p>
+<h2><strong>Network Exploration</strong></h2>
+<p>In the <strong>Network Exploration</strong> section, users are presented 
+with an extensive network graph showing patterns of asylum claims around the world. 
+This interactive graph can be filtered by year, country and group to observe changes 
+in patterns over time. To facilitate a better understanding of the role of specific 
+countries within the network, this section presents several network analysis measures, 
+such as betweenness, eigenvector and closeness centrality.</p>
+<h2><strong>Network Characteristics</strong></h2>
+<p>In addition, the <strong>Network Characteristics</strong> sections for both 
+countries of origin and countries of asylum provide users with detailed network graphs 
+showing the connections between specific countries of origin and their countries of asylum,
+or vice versa. These visualisations allow users to gain insight into the relationships between 
+specific countries, help identify popular asylum countries and uncover potential reasons behind 
+these patterns.</p>
+<h2><strong>Network Prediction</strong></h2>
+<p>Finally, the <strong>Network Prediction</strong> section includes a Jaccard Index calculation 
+to show the similarity between nations based on their refugee flows. This measure can help 
+identify areas where international cooperation and collaboration may be beneficial in 
+addressing refugee-related issues.</p>
+<h2><strong>Gain a deeper insight!</strong></h2>
+<p>We invite you to explore the various tabs and features of this ShinyApp to gain a 
+deeper understanding of global refugee migration patterns and the complex relationships 
+between countries. By providing this insight, we hope to contribute to ongoing efforts to 
+address the challenges faced by refugees and the countries involved in this humanitarian crisis.</p>
+<p><strong>Credits</strong></p>
+<p>For the complete network graph in the menu tab <strong>Network Exploration</strong> we 
+based our code on the idea of Philip Ohlsson, find his Git Hub 
+<a href="https://github.com/philipohlsson/refugee_data_UNHCR" target="_blank">here</a></p>')),
       )
     )
   )
 )
 )
 )
-
+)
 
 
 # Run the app
