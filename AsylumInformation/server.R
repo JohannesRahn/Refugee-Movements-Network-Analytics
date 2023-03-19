@@ -256,9 +256,6 @@ server <- function(input, output, session) {
     
     pal <- colorNumeric(palette = "YlGn", domain = unique(edges$weight), n = 10)
 
-    # Calculate quantiles and create labels
-    quantiles <- quantile(edges$weight, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
-    
     leaflet(vert) %>% 
       addProviderTiles(providers$CartoDB.Voyager) %>% 
       addCircleMarkers() %>% 
@@ -281,7 +278,7 @@ server <- function(input, output, session) {
     
     edges_df <- SpatialLinesDataFrame(edges_lines, edges)
     
-    pal <- colorNumeric(palette = "YlOrRd", domain = unique(edges$weight), n = 10)
+    pal <- colorNumeric(palette = "YlGn", domain = unique(edges$weight), n = 10)
 
     leaflet(vert) %>% 
       addProviderTiles(providers$CartoDB.Voyager) %>% 
@@ -298,7 +295,7 @@ server <- function(input, output, session) {
       Statistic = c("Number of vertices", "Number of edges", "Diameter",
                     "Average Path Length", "Average clustering coefficient", "Average degree"),
       Value = c(vcount(g), ecount(g), diameter(g),
-                mean(shortest.paths(g)), transitivity(g, type = "average"), mean(degree(g)))
+                mean(shortest.paths(g)), transitivity(g, type = "average"), degree(g))
     )
   })
   
@@ -384,16 +381,16 @@ server <- function(input, output, session) {
 
   # Create a prediction
   output$mymap_pred <- renderLeaflet({
-    graph_pred <- create_prediction_graph(input$country, input$in_out)
-    vert <- graph_pred$vert
-    edges <- graph_pred$edges
-    g <- graph_pred$graph
-    edges_lines <- graph_pred$edges_lines
+    graph.pred <- create_prediction_graph(input$country, input$in_out)
+    vert <- graph.pred$vert
+    edges <- graph.pred$edges
+    g <- graph.pred$graph
+    edges.lines <- graph.pred$edges.lines
     
     leaflet(vert) %>% 
       addProviderTiles(providers$CartoDB.Voyager) %>% 
       addCircleMarkers(color = "green") %>% 
-      addPolylines(data = edges_lines, weight = 2, color = "green", dashArray = "5,10")
+      addPolylines(data = edges.lines, weight = 2, color = "green", dashArray = "5,10")
   })
   
   

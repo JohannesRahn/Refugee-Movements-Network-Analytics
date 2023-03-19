@@ -101,6 +101,9 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.origin == country & dt.asylum$Year == Year_input, ])
   dt.asylum.filtered <- dt.asylum.filtered[!(dt.asylum.filtered$Country.of.origin == "Unknown" | dt.asylum.filtered$Country.of.asylum == "Unknown"), ]
 
+  if (nrow(dt.asylum.filtered) == 0) {
+    shinyalert("No Data Available!", "There is no data matching your criteria.", type = "error")}
+  
   lon_lat <- function() {
     location.vertices <- data.table(dt.asylum.filtered) 
     location.origin <- location.vertices[, c("Country.of.origin", "Origin_Capital_Lat", "Origin_Capital_Long", "Year", "Origin_Income")]
@@ -140,6 +143,9 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
     # Create a new vertex attribute indicating whether the vertex should be included in the income filter
     filtered_vertices <- subset(location.vertices, income %in% c(income_level) | type)
     
+    if (nrow(filtered_vertices) == 0) {
+      shinyalert("No Data Available!", "There is no data matching your criteria.", type = "error")}
+    
     # Create a vector with names
     filtered_vertices_vec <- filtered_vertices$name
     
@@ -170,7 +176,7 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
   edges <- gg$edges
 
   # Loop through the columns of the edges data frame
-  edges_sp <- apply(edges, 1, function(row) {
+  sp.edges <- apply(edges, 1, function(row) {
     from_vert <- vert[vert$name == row["from"], ]
     to_vert <- vert[vert$name == row["to"], ]
     
@@ -197,20 +203,28 @@ create_asylum_graph <- function(dt.asylum, country, Year_input, income_level) {
 
 create_asylum_graph_asylum <- function(dt.asylum, country, Year_input, income_level) {
   dt.asylum <- prepare_data()
-  dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.asylum == country & dt.asylum$Year == Year_input, ])
-  dt.asylum.filtered <- dt.asylum.filtered[!(dt.asylum.filtered$Country.of.origin == "Unknown" | dt.asylum.filtered$Country.of.asylum == "Unknown"), ]
+  dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.asylum == country &
+                                               dt.asylum$Year == Year_input, ])
+  dt.asylum.filtered <- dt.asylum.filtered[!(dt.asylum.filtered$Country.of.origin == "Unknown" 
+                                             | dt.asylum.filtered$Country.of.asylum == "Unknown"), ]
   
-  
-  
+  if (nrow(dt.asylum.filtered) == 0) {
+    shinyalert("No Data Available!", "There is no data matching your criteria.", type = "error")}
   
   lon_lat <- function() {
     location.vertices <- data.table(dt.asylum.filtered) 
-    location.origin <- location.vertices[, c("Country.of.origin", "Origin_Capital_Lat", "Origin_Capital_Long", "Year", "Origin_Income")]
-    location.origin <- rename(location.origin,c("name" = "Country.of.origin", "lat" = "Origin_Capital_Lat", "lon" = "Origin_Capital_Long", "income" = "Origin_Income"))
+    location.origin <- location.vertices[, c(
+      "Country.of.origin", "Origin_Capital_Lat", "Origin_Capital_Long", "Year", "Origin_Income")]
+    location.origin <- rename(location.origin,c(
+      "name" = "Country.of.origin", "lat" = "Origin_Capital_Lat", "lon" = "Origin_Capital_Long",
+      "income" = "Origin_Income"))
     location.origin <- location.origin[, list(unique(location.origin), type = TRUE)]
     
-    location.asylum <- location.vertices[, c("Country.of.asylum", "Asylum_Capital_Lat", "Asylum_Capital_Long", "Year", "Asylum_Income")]
-    location.asylum <- rename(location.asylum,c("name" = "Country.of.asylum", "lat" = "Asylum_Capital_Lat", "lon" = "Asylum_Capital_Long", "income" = "Asylum_Income"))
+    location.asylum <- location.vertices[, c(
+      "Country.of.asylum", "Asylum_Capital_Lat", "Asylum_Capital_Long", "Year", "Asylum_Income")]
+    location.asylum <- rename(location.asylum,c(
+      "name" = "Country.of.asylum", "lat" = "Asylum_Capital_Lat",
+      "lon" = "Asylum_Capital_Long", "income" = "Asylum_Income"))
     location.asylum <- location.asylum[, list(unique(location.asylum), type = FALSE)]
     
     all.locations <- rbind(location.origin, location.asylum)
@@ -238,14 +252,23 @@ create_asylum_graph_asylum <- function(dt.asylum, country, Year_input, income_le
     # There is a chosen income level
   } else {
     # Create a new vertex attribute indicating whether the vertex should be included in the income filter
-    filtered_vertices <- subset(location.vertices, income %in% c(income_level) | type)
+    filtered_vertices <- subset(location.vertices, income == "Low income")
+    
+    #filtered_vertices <- subset(location.vertices, income %in% c(income_level) | type)
+    
+    if (nrow(filtered_vertices) == 0) {
+      shinyalert("No Data Available!", "There is no data matching your criteria.", type = "error")}
     
     # Create a vector with names
     filtered_vertices_vec <- filtered_vertices$name
     
     # Include in the filtered_edges just the filtered vertices
     filtered_edges <- subset(edges, from %in% filtered_vertices_vec & to %in% filtered_vertices_vec)
+
     # Some asylum countries are doubled so take unique values only
+    filtered_edges_idx <- match(paste(filtered_edges$from, filtered_edges$to), paste(edges$from, edges$to))
+    filtered_decisions <- dt.asylum.filtered$Total.decisions[filtered_edges_idx]
+    
     unique_filtered_edges <- unique(filtered_edges)
     edges <- unique_filtered_edges
     
@@ -435,107 +458,119 @@ create_prediction_graph <- function(country, in_out) {
   dt.asylum <- prepare_data()
   
   lon_lat <- function() {
-    location.vertices <- data.table(dt.asylum) 
-    location.origin <- location.vertices[, c("Country.of.origin", "Origin_Capital_Lat", "Origin_Capital_Long")]
-    location.origin <- rename(location.origin,c("name" = "Country.of.origin", "lat" = "Origin_Capital_Lat", "lon" = "Origin_Capital_Long"))
-    location.origin <- location.origin[, list(unique(location.origin), type = TRUE)]
+    dt.location.vertices <- data.table(dt.asylum) 
+    dt.location.origin <- dt.location.vertices[, c(
+      "Country.of.origin", "Origin_Capital_Lat", "Origin_Capital_Long")]
+    dt.location.origin <- rename(dt.location.origin,c(
+      "name" = "Country.of.origin", "lat" = "Origin_Capital_Lat",
+      "lon" = "Origin_Capital_Long"))
+    dt.location.origin <- dt.location.origin[, list(unique(dt.location.origin),
+                                                    type = TRUE)]
     
-    location.asylum <- location.vertices[, c("Country.of.asylum", "Asylum_Capital_Lat", "Asylum_Capital_Long")]
-    location.asylum <- rename(location.asylum,c("name" = "Country.of.asylum", "lat" = "Asylum_Capital_Lat", "lon" = "Asylum_Capital_Long"))
-    location.asylum <- location.asylum[, list(unique(location.asylum), type = FALSE)]
+    dt.location.asylum <- dt.location.vertices[, c(
+      "Country.of.asylum", "Asylum_Capital_Lat", "Asylum_Capital_Long")]
+    dt.location.asylum <- rename(dt.location.asylum,c(
+      "name" = "Country.of.asylum", "lat" = "Asylum_Capital_Lat", 
+      "lon" = "Asylum_Capital_Long"))
+    dt.location.asylum <- dt.location.asylum[, list(unique(dt.location.asylum),
+                                                    type = FALSE)]
     
-    all.locations <- rbind(location.origin, location.asylum)
-    all.locations <- all.locations[!duplicated(name)]
+    dt.all.locations <- rbind(dt.location.origin, dt.location.asylum)
+    dt.all.locations <- dt.all.locations[!duplicated(name)]
     
-    all.locations$index <- seq_len(nrow(all.locations))
+    dt.all.locations$index <- seq_len(nrow(dt.all.locations))
     
-    return(all.locations)
+    return(dt.all.locations)
   }
   
-  location.vertices <- lon_lat()
+  dt.location.vertices <- lon_lat()
   edges <- dt.asylum[, c("Country.of.origin", "Country.of.asylum")]
   edges <- rename(edges, c("from" = "Country.of.origin", "to" = "Country.of.asylum"))
   
   # Match vertex names to indices in the vertex data frame
-  from_idx <- match(edges$from, location.vertices$name)
-  to_idx <- match(edges$to, location.vertices$name)
+  from.idx <- match(edges$from, dt.location.vertices$name)
+  to.idx <- match(edges$to, dt.location.vertices$name)
   
   # Create the graph
-  g <- graph.data.frame(edges, directed = TRUE, vertices = location.vertices)
+  g <- graph.data.frame(edges, directed = TRUE, vertices = dt.location.vertices)
   g <- set_edge_attr(g, "weight", value= dt.asylum$Total.decisions + 0.001)
   weights <- E(g)$weight
-  #plot(g)
-  
+
   if (in_out == "Origin"){
-  # Calculate the similarity between all pairs of nodes
-    similarity_matrix <- similarity.jaccard(g, mode = "out")
+    # Calculate the similarity between all pairs of nodes
+    m.similarity.matrix <- similarity.jaccard(g, mode = "out")
   } else {
-    similarity_matrix <- similarity.jaccard(g, mode = "in")
+    m.similarity.matrix <- similarity.jaccard(g, mode = "in")
   }
-  # Set the diagonal to zero (because we don't want to predict self-loops)
-  diag(similarity_matrix) <- 0
+  
+  # Set the diagonal to zero
+  diag(m.similarity.matrix) <- 0
   
   # Predict the top n edges with highest similarity that don't already exist
   n <- 10
-  predicted_edges <- data.frame(as.matrix(which(similarity_matrix > 0, arr.ind = TRUE)))
-  colnames(predicted_edges) <- c("from", "to")
-  predicted_edges_weights <- similarity_matrix[as.matrix(predicted_edges)]
-  predicted_edges <- cbind(predicted_edges, predicted_edges_weights)
-  predicted_edges <- predicted_edges[order(-predicted_edges_weights), ]
-  predicted_edges <- predicted_edges[!(predicted_edges$from %in% edges$from &
-                                         predicted_edges$to %in% edges$to), ]
+  dt.predicted.edges <- data.frame(as.matrix(which(m.similarity.matrix > 0,
+                                                   arr.ind = TRUE)))
+  colnames(dt.predicted.edges) <- c("from", "to")
+  m.predicted.edges.weights <- m.similarity.matrix[as.matrix(dt.predicted.edges)]
+  dt.predicted.edges <- cbind(dt.predicted.edges, m.predicted.edges.weights)
+  dt.predicted.edges <- dt.predicted.edges[order(-m.predicted.edges.weights), ]
+  dt.predicted.edges <- dt.predicted.edges[!(dt.predicted.edges$from %in% edges$from &
+                                         dt.predicted.edges$to %in% edges$to), ]
   
-  vertex_lookup <- setNames(location.vertices$name, location.vertices$index)
-  predicted_edges$from <- vertex_lookup[predicted_edges$from]
-  predicted_edges$to <- vertex_lookup[predicted_edges$to]
+  vertex.lookup <- setNames(dt.location.vertices$name, dt.location.vertices$index)
+  dt.predicted.edges$from <- vertex.lookup[dt.predicted.edges$from]
+  dt.predicted.edges$to <- vertex.lookup[dt.predicted.edges$to]
   
   if (in_out == "Origin"){
-    predicted_edges <- predicted_edges[(predicted_edges$from == country), ]
+    dt.predicted.edges <- dt.predicted.edges[(dt.predicted.edges$from == country), ]
   } else {
-    predicted_edges <- predicted_edges[(predicted_edges$to == country), ]
+    dt.predicted.edges <- dt.predicted.edges[(dt.predicted.edges$to == country), ]
   }
-  predicted_edges_filter <- predicted_edges[1:n, 1:2]
+  dt.predicted.edges.filter <- dt.predicted.edges[1:n, 1:2]
   
   # Create a new directed graph with the predicted edges
-  g_predicted_edges <- graph_from_edgelist(as.matrix(predicted_edges_filter), directed = TRUE)
+  g.predicted.edges <- graph_from_edgelist(as.matrix(dt.predicted.edges.filter),
+                                           directed = TRUE)
   
-  # Create a new directed graph with the predicted edges
-  g_predicted_edges <- set_edge_attr(g_predicted_edges, "weight", value = predicted_edges$predicted_edges_weights[1:n])
-  weights <- E(g_predicted_edges)$weight
+  g.predicted.edges <- set_edge_attr(g.predicted.edges, "weight",
+                                     value = dt.predicted.edges$m.predicted.edges.weights[1:n])
+  weights <- E(g.predicted.edges)$weight
   
-  gg_pred <- get.data.frame(g_predicted_edges, "both")
-  gg_vert <- gg_pred$vertices$name
-  gg_vert_pred <- location.vertices[location.vertices$name %in% gg_vert, ]
-  gg_vert_pred <- gg_vert_pred[complete.cases(gg_vert_pred), ]
+  gg.pred <- get.data.frame(g.predicted.edges, "both")
+  gg.vert <- gg.pred$vertices$name
+  gg.vert.pred <- dt.location.vertices[dt.location.vertices$name %in% gg.vert, ]
+  gg.vert.pred <- gg.vert.pred[complete.cases(gg.vert.pred), ]
   
-  coordinates(gg_vert_pred) <- ~lon+lat
+  coordinates(gg.vert.pred) <- ~lon+lat
   
-  edges <- gg_pred$edges
-  edges <- edges[(edges$to %in% gg_vert_pred$name) & (edges$from %in% gg_vert_pred$name), ]
+  edges <- gg.pred$edges
+  edges <- edges[(edges$to %in% gg.vert.pred$name) &
+                   (edges$from %in% gg.vert.pred$name), ]
   
   # Loop through the columns of the edges data frame
-  edges_sp <- apply(edges, 1, function(row) {
-    from_vert <- gg_vert_pred[gg_vert_pred$name == row["from"], ]
-    to_vert <- gg_vert_pred[gg_vert_pred$name == row["to"], ]
+  sp.edges <- apply(edges, 1, function(row) {
+    from.vert <- gg.vert.pred[gg.vert.pred$name == row["from"], ]
+    to.vert <- gg.vert.pred[gg.vert.pred$name == row["to"], ]
     
     # Check if either vertex is missing, and skip this edge if so
-    if (nrow(from_vert) == 0 || nrow(to_vert) == 0) {
+    if (nrow(from.vert) == 0 || nrow(to.vert) == 0) {
       return(NULL)
     }
     
-    as(rbind(from_vert, to_vert), "SpatialLines")
+    as(rbind(from.vert, to.vert), "SpatialLines")
   })
   
   # Remove NULL values from edges list
-  edges_sp <- edges_sp[!sapply(edges_sp, is.null)]
+  sp.edges <- sp.edges[!sapply(sp.edges, is.null)]
   
   # Assign IDs to edges
-  edges_sp <- lapply(1:length(edges_sp), function(i) {
-    spChFIDs(edges_sp[[i]], as.character(i))
+  sp.edges <- lapply(1:length(sp.edges), function(i) {
+    spChFIDs(sp.edges[[i]], as.character(i))
   })
   
-  edges_sp <- do.call(rbind, edges_sp)
-  return(list(g_old = g, graph = g_predicted_edges, vert = gg_vert_pred, edges = edges, edges_lines = edges_sp))
+  sp.edges <- do.call(rbind, sp.edges)
+  return(list(g.old = g, graph = g.predicted.edges,
+              vert = gg.vert.pred, edges = edges, edges.lines = sp.edges))
 }
 
 preparation_rejections <- function(){
@@ -664,8 +699,6 @@ descriptives <- function() {
           axis.text.x = element_blank(), # Remove x-axis tick labels
           plot.margin = unit(c(1, 1, 1, 3), "lines")) # Add space on the right for x-axis labels
   
-  
-  
   ##### top 5 countries highest rejection 
   # sort df and get top 5 countries with highest rejections
   df.top.rejection5 <- rejections %>%
@@ -738,7 +771,7 @@ descriptives <- function() {
   # Add the images to the plot using geom_image()
   p4 <- ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), y = rejection.rate, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_files4), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = 0, image = image_files4), size = 0.08) +
     geom_text(aes(label = round(rejection.rate, 1)), vjust = -0.5, size = 4) + # Add data labels to bars as percentages
     labs(x = "Countries of Asylum", y = "Rejection Rate") + # Remove x-axis label
     ggtitle("Top 5 Countries of Asylum by Rejection Rate") +
@@ -754,7 +787,7 @@ descriptives <- function() {
           axis.text.y = element_blank(), # Remove y-axis tick labels
           axis.text.x = element_blank(), # Remove x-axis tick labels
           plot.margin = unit(c(1, 1, 1, 3), "lines")) # Add space on the right for x-axis labels
-  
+
   
   
   ##### pie chart with total decisions by income level
