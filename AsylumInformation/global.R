@@ -1,5 +1,6 @@
 library(shiny)
 library(shinydashboard)
+library(shinyalert)
 library(ggplot2)
 library(dplyr)
 library(rsconnect)
@@ -27,12 +28,15 @@ prepare_data <- function() {
     dt.country.capitals <- read.csv("data/concap.csv", header=TRUE)
     dt.country.meta.info <- read.csv("data/country_region.csv", header=TRUE)
     
-    dt.country.info.merge <- merge(dt.country.income, dt.country.meta.info, by.x= "Code", 
-                                   by.y = "alpha.3")
-    dt.country.info.merge <- merge(dt.country.info.merge, dt.country.capitals, by.x= "alpha.2", by.y="CountryCode")
+    dt.country.info.merge <- merge(dt.country.income, dt.country.meta.info,
+                                   by.x= "Code", by.y = "alpha.3")
+    dt.country.info.merge <- merge(dt.country.info.merge, dt.country.capitals, 
+                                   by.x= "alpha.2", by.y="CountryCode")
     
     # Merge for Asylum Information
-    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, by.x="Country.of.asylum..ISO.", by.y="Code", all.x = TRUE)
+    dt.asylum.data <- merge(dt.asylum.data, dt.country.info.merge, 
+                            by.x="Country.of.asylum..ISO.", by.y="Code", 
+                            all.x = TRUE)
     # renaming column
     names(dt.asylum.data)[names(dt.asylum.data)=="Income.group"] <- "Asylum_Income"
     names(dt.asylum.data)[names(dt.asylum.data)=="CapitalName"] <- "Asylum_Capital"
@@ -54,13 +58,17 @@ prepare_data <- function() {
     names(dt.asylum.data)[names(dt.asylum.data)=="sub.region"] <- "Origin_Sub_Region"
     names(dt.asylum.data)[names(dt.asylum.data)=="ContinentName"] <- "Origin_Continent"
     
-    col.order <- c("Country.of.origin", "Country.of.asylum", "Year", "Country.of.origin..ISO.", 
-                   "Country.of.asylum..ISO.", "Authority", "Stage.of.procedure", "Cases...Persons", 
-                   "Recognized.decisions", "Complementary.protection", "Rejected.decisions", 
-                   "Otherwise.closed", "Total.decisions", "Asylum_Income", "Asylum_Capital", 
-                   "Asylum_Capital_Lat", "Asylum_Capital_Long", "Origin_Income", "Origin_Capital", 
-                   "Origin_Capital_Lat", "Origin_Capital_Long", "Asylum_Region", "Asylum_Sub_Region", 
-                   "Asylum_Continent", "Origin_Region", "Origin_Sub_Region", "Origin_Continent", "alpha.2.y", "alpha.2.x")
+    col.order <- c("Country.of.origin", "Country.of.asylum", "Year", 
+                   "Country.of.origin..ISO.", "Country.of.asylum..ISO.", 
+                   "Authority", "Stage.of.procedure", "Cases...Persons", 
+                   "Recognized.decisions", "Complementary.protection", 
+                   "Rejected.decisions", "Otherwise.closed", "Total.decisions", 
+                   "Asylum_Income", "Asylum_Capital", "Asylum_Capital_Lat", 
+                   "Asylum_Capital_Long", "Origin_Income", "Origin_Capital", 
+                   "Origin_Capital_Lat", "Origin_Capital_Long", "Asylum_Region", 
+                   "Asylum_Sub_Region", "Asylum_Continent", "Origin_Region", 
+                   "Origin_Sub_Region", "Origin_Continent", "alpha.2.y", 
+                   "alpha.2.x")
     
     dt.asylum.data <- dt.asylum.data[, col.order]
     
@@ -92,7 +100,7 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
   dt.asylum <- prepare_data()
   dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.origin == country & dt.asylum$Year == Year_input, ])
   dt.asylum.filtered <- dt.asylum.filtered[!(dt.asylum.filtered$Country.of.origin == "Unknown" | dt.asylum.filtered$Country.of.asylum == "Unknown"), ]
-  
+
   
   lon.lat <- function() {
     dt.location.vertices <- data.table(dt.asylum.filtered) 
@@ -106,6 +114,7 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
     
     dt.all.locations <- rbind(dt.location.origin, dt.location.asylum)
     dt.all.locations <- dt.all.locations[, list(unique(dt.all.locations))]
+
     
     return(dt.all.locations)
   }
@@ -240,6 +249,7 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
     
     g <- graph.data.frame(filtered.edges, directed = TRUE, vertices = filtered.vertices)
     g <- set_edge_attr(g, "weight", value = filtered.decisions + 0.001)
+
     weights <- E(g)$weight
     
     # Plot the filtered graph
@@ -428,7 +438,7 @@ circular.graph <- function(year) {
     
   return(list(visnetwork.refugees, g.circ, df.statistics.merged, df.statistics))}
   
-create_prediction_graph <- function(country) {
+create_prediction_graph <- function(country, in_out) {
   dt.asylum <- prepare_data()
   
   lon.lat <- function() {
@@ -463,9 +473,12 @@ create_prediction_graph <- function(country) {
   weights <- E(g)$weight
   #plot(g)
   
+  if (in_out == "Origin"){
   # Calculate the similarity between all pairs of nodes
-  similarity_matrix <- similarity.jaccard(g, mode = "in")
-  
+    similarity_matrix <- similarity.jaccard(g, mode = "out")
+  } else {
+    similarity_matrix <- similarity.jaccard(g, mode = "in")
+  }
   # Set the diagonal to zero (because we don't want to predict self-loops)
   diag(similarity_matrix) <- 0
   
@@ -483,19 +496,21 @@ create_prediction_graph <- function(country) {
   predicted.edges$from <- vertex_lookup[predicted.edges$from]
   predicted.edges$to <- vertex_lookup[predicted.edges$to]
   
-  predicted.edges <- predicted.edges[(predicted.edges$from == country), ]
-  predicted.edges <- predicted.edges[1:n, 1:2]
+
+  if (in_out == "Origin"){
+    predicted_edges <- predicted_edges[(predicted_edges$from == country), ]
+  } else {
+    predicted_edges <- predicted_edges[(predicted_edges$to == country), ]
+  }
+  predicted_edges_filter <- predicted_edges[1:n, 1:2]
   
   # Create a new directed graph with the predicted edges
-  g.predicted.edges <- graph_from_edgelist(as.matrix(predicted.edges), directed = TRUE)
-  E(g.predicted.edges)$weight <- predicted.edges.weights[1:n]
+  g_predicted_edges <- graph_from_edgelist(as.matrix(predicted_edges_filter), directed = TRUE)
+
   
-  # m.predicted.edges <- as.matrix(cocitation(graph_pred) * (1-get.adjacency(graph_pred)))
-  # g.predicted.edges <- graph_from_adjacency_matrix(m.predicted.edges,
-  #                                                  mode = "directed",
-  #                                                  weighted = TRUE)
-  # E(g.predicted.edges)$width <- E(g.predicted.edges)$weight * 2
-  # plot(g.predicted.edges)
+  # Create a new directed graph with the predicted edges
+  g_predicted_edges <- set_edge_attr(g_predicted_edges, "weight", value = predicted_edges$predicted_edges_weights[1:n])
+  weights <- E(g_predicted_edges)$weight
   
   gg_pred <- get.data.frame(g.predicted.edges, "both")
   gg_vert <- gg_pred$vertices$name
@@ -528,8 +543,10 @@ create_prediction_graph <- function(country) {
     spChFIDs(edges.sp[[i]], as.character(i))
   })
   
-  edges.sp <- do.call(rbind, edges.sp)
-  return(list(graph = g.predicted.edges, vert = gg_vert_pred, edges = edges, edges_lines = edges.sp))
+
+  edges_sp <- do.call(rbind, edges_sp)
+  return(list(g_old = g, graph = g_predicted_edges, vert = gg_vert_pred, edges = edges, edges_lines = edges_sp))
+
 }
 
 preparation_rejections <- function(){
@@ -732,7 +749,7 @@ descriptives <- function() {
   # Add the images to the plot using geom_image()
   p4 <- ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), y = rejection.rate, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_files4), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = 0, image = image_files4), size = 0.08) +
     geom_text(aes(label = round(rejection.rate, 1)), vjust = -0.5, size = 4) + # Add data labels to bars as percentages
     labs(x = "Countries of Asylum", y = "Rejection Rate") + # Remove x-axis label
     ggtitle("Top 5 Countries of Asylum by Rejection Rate") +

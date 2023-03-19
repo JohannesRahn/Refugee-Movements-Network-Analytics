@@ -1,6 +1,6 @@
 source("server.R")
 dt.asylum <- prepare_data()
-dt.asylum.aggregated <- aggregate_data()
+#dt.asylum.aggregated <- aggregate_data(dt.asylum)
 # dt.asylum$Country.of.origin <- as.character(dt.asylum$Country.of.origin)
 ui <- dashboardPage(
   dashboardHeader(
@@ -17,6 +17,8 @@ ui <- dashboardPage(
     sidebarMenu(
       menuItem("Descriptive Analysis", tabName = "analysis", 
                icon = icon("chart-bar"))
+      , menuItem("Regional Analysis", tabName = "region_analysis", 
+                       icon = icon("map-pin"))
       , menuItem("Network Characteristics", tabName = "characteristics", icon = icon("globe"))
       , menuItem("Network Exploration", tabName = "network_exploration", icon = icon("code"))
       , menuItem("Network Prediction", tabName = "network_prediction", icon = icon("list-alt"))
@@ -25,33 +27,149 @@ ui <- dashboardPage(
   ),
   dashboardBody(
     tabItems(
-      tabItem(tabName = "analysis",
-              # Add graphs for descriptive analysis page
-              fluidRow(
-                column(6, plotOutput("total.decisions.plot")),
-                column(6, plotOutput("recognized.decisions.plot")),
-                column(6, plotOutput("rejected.decisions.plot")),
-                column(6, plotOutput("otherwise.closed.decisions.plot")),
-                column(6, plotOutput("total.closed.decisions.plot"))
+      tabItem(tabName = "region_analysis",
+              # Creating styling for the plots
+              fluidPage(
+                tags$style(HTML("
+    .well {
+      background-color: #f5f5f5;
+      border-radius: 3px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .kpi {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .kpi-head {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+  ")),
+                
+                fluidRow(
+                  column(4,
+                         wellPanel(
+                           h3("Total Recognized Decisions") %>% 
+                             tagAppendAttributes(class = 'kpi-head'),
+                           textOutput("totalRecognized") %>% 
+                             tagAppendAttributes(class = 'kpi')
+                         )),
+                  column(4,
+                         wellPanel(
+                           h3("Total Rejected Decisions") %>% 
+                             tagAppendAttributes(class = 'kpi-head'),
+                           span(textOutput("totalRejected")) %>% 
+                             tagAppendAttributes(class = 'kpi')
+                         )),
+                  column(4,
+                         wellPanel(
+                           h3("Percentage of Rejected Decisions") %>% 
+                             tagAppendAttributes(class = 'kpi-head'),
+                           span(textOutput("rejectedPercent")) %>% 
+                             tagAppendAttributes(class = 'kpi')
+                         ))
+                ),
+                fluidRow(
+                  column(3,
+                         selectInput("asylumIncomeGroupFilter",
+                                     "Filter by Aslyum Income Group:",
+                                     choices = c("No Filter", "Low income", "Lower middle income", "Upper middle income", "High income"),
+                                     selected = "No Filter")),
+                  column(3,
+                         selectInput("originIncomeGroupFilter",
+                                     "Filter by Origin Income Group:",
+                                     choices = c("No Filter", "Low income", "Lower middle income", "Upper middle income", "High income"),
+                                     selected = "No Filter")),
+                  column(3,
+                         selectInput("originRegionFilter",
+                                     "Filter by Origin Region:",
+                                     choices = c("No Filter", unique(na.omit(dt.asylum$Origin_Region))),
+                                     selected = "No Filter")),
+                  column(3,
+                         selectInput("asylumRegionFilter",
+                                     "Filter by Asylum Region:",
+                                     choices = c("No Filter", unique(na.omit(dt.asylum$Asylum_Region))),
+                                     selected = "No Filter"))
+                ),
+                fluidRow(
+                  column(6, wellPanel(plotOutput("yearly.decisions.plot"))),
+                  column(6, wellPanel(plotOutput("authority.decisions.plot")))
+                  #column(6, wellPanel(plotOutput("recognized.decisions.plot")))
+                ),
+                fluidRow(
+                  column(12, wellPanel(plotOutput("combined.decisions.plot")))
+                )
+                
+                
               )
-              
+      ),
+      tabItem(tabName = "analysis",
+              fluidPage(
+                tags$style(HTML("
+    .well {
+      background-color: #f5f5f5;
+      border-radius: 3px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .kpi {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .kpi-head {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+  ")),
+              fluidRow(
+                column(12, uiOutput("introduction_descriptives"))
+              ),
+              fluidRow(
+                column(4, plotOutput("total.asylum")),
+                column(8, div("Random Index 1"))
+              ),
+              fluidRow(
+                column(4, plotOutput("total.origin")),
+                column(8, div("Rnadom Index 2", style = "background-color: #f7f7f7; padding: 20px; border-radius: 5px;")), offset = 4
+              ),
+              fluidRow(
+                column(4, plotOutput("total.rejection")),
+                column(8, div("Random Index 3", style = "background-color: #f7f7f7; padding: 20px; border-radius: 5px;")), offset = 8
+              ),
+              fluidRow(
+                column(4, plotOutput("total.rejection.rate")),
+                column(8, div("Rnadom Index 4", style = "background-color: #f7f7f7; padding: 20px; border-radius: 5px;"))
+              ),
+              fluidRow(
+                column(4, plotOutput("decisions.by.income")),
+                column(8, div("Random Index 5", style = "background-color: #f7f7f7; padding: 20px; border-radius: 5px;")), offset = 4
+              ),
+              fluidRow(
+                column(12, leafletOutput("rejections.map"), width = 12)
+              )
+              )
       ),
       tabItem(tabName = "characteristics",
               fluidRow(
                 column(9, uiOutput("introduction")),
               ),
               fluidRow(
-                column(4, pickerInput("origin", "Country of origin", choices=unique(dt.asylum$Country.of.origin), options = list(actions_box = TRUE), selected=NULL, multiple=FALSE)),
+                column(4, pickerInput("origin", "Country of origin", choices = unique(dt.asylum$Country.of.origin[dt.asylum$Country.of.origin != "Unknown"]), options = list(actions_box = TRUE), selected="Afghanistan", multiple=FALSE)),
                 column(4, pickerInput("Year_input", "Year", choices=unique(dt.asylum$Year)[order(unique(dt.asylum$Year))], options = list(actions_box = TRUE), selected=2017, multiple=FALSE)),
-                column(4, pickerInput("income_level", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))),
-                # column(4, uiOutput("asylum.income.selector"))
+                column(4, pickerInput("income_level", "Income Level", choices=c("All levels", "Low income", "Lower middle income", "Upper middle income", "High income"), options = list(actions_box = TRUE), selected="all", multiple=FALSE))
+                ),
+              # column(4, uiOutput("asylum.income.selector"))
               
               
               fluidRow(
                 column(3, uiOutput("info")),
                 column(9,leafletOutput("mymap")),
-                ),
-              # Description for Statistic Values
+              ),
               h3("Description for Statistic Values"),
               h4("Number of Vertices"),
               h5("The number of vertices refers to the total number of nodes or entities in a network. These nodes can represent a variety of different entities, such as people, organizations, countries, depending on the context of the analysis.The number of vertices is an important characteristic of a network because it can affect many of its properties and behaviors. For example: As the number of vertices increases, the degree distribution tends to become more normally distributed, the clustering coefficient tends to decrease, indicating a less tightly knit network, and the diameter tends to increase as well, although the rate of increase may depend on the specific network structure."),
@@ -73,7 +191,7 @@ ui <- dashboardPage(
               fluidRow(
                 column(4, selectInput("year", "Select year:", choices = as.character(seq(2000, 2022)))),
                 column(3, actionButton("show_graph", "Show Graph")
-              )),
+                )),
               fluidRow(
                 column(3, tableOutput("info_circle")),
                 column(9, visNetworkOutput("circular_plot")),
@@ -82,7 +200,12 @@ ui <- dashboardPage(
                 column(3, uiOutput("description_cen")),
                 column(9, tableOutput("betweenness")),
               ),
-      ),
+              
+              fluidRow(
+                column(4, radioButtons("col", "Choose a column:",
+                                       choices = c("betweenness", "closeness", "eigenvector"), selected = "betweenness")),
+                column(4, tableOutput("statistics.circ"))
+              )),
       tabItem(tabName = "network_prediction",
               fluidRow(
                 column(9, uiOutput("introduction_pred")),
@@ -95,6 +218,7 @@ ui <- dashboardPage(
               
       ),
       tabItem(tabName = "about",
+              uiOutput("about"),
               #Add overview about our project
               h2("About Us"),
               h5("We are a group of students at NOVA SBE and we conducting the number of refugees who are seeking for asylum around the world. Our primary purpose is to better understanding what the data can provide therefore we can protect and help these refugees. Our data is generated from UNHCR (the United High Commissioner for Refugees).UNHCR is a global organization dedicated to saving lives, protecting rights and building a better future for refugees, forcibly displaced communities and stateless people."),
@@ -121,7 +245,7 @@ ui <- dashboardPage(
               h5("Because the data is base on Government reports, there are some of the data is Unknown/Error. Thus, some of the function for the filter will not show properly results!!!"),
               h5("Secondary, these data is base on the number of Decision by the Government, so in reality there are higher number of asylum seeking!!!")
       )
-    
+      
     )
   )
 )

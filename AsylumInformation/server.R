@@ -27,17 +27,37 @@ server <- function(input, output, session) {
   # Reactive element for descriptive filter:
   descriptive_data <- reactive({
     
-    dt.descriptive <- filter_region_analysis(dt.asylum, input$asylumIncomeGroupFilter, input$originIncomeGroupFilter, input$originRegionFilter, input$asylumRegionFilter)
+    dt.descriptive <- filter_region_analysis(dt.asylum, 
+                                             input$asylumIncomeGroupFilter, 
+                                             input$originIncomeGroupFilter, 
+                                             input$originRegionFilter, 
+                                             input$asylumRegionFilter)
     
     # The descriptive analysis only needs aggregated data
     dt.aggregated.descriptive <- na.omit(aggregate_data(dt.descriptive))
     return(dt.aggregated.descriptive)
   })
-  
+  # Introduction for Descriptive section
+  output$introduction_regional <- renderText({
+    HTML(paste("<h1 style='color:green;'>", "Regional Analysis", "</h1>", "<br>", 
+    "<div>", "The tab presents various visualizations which allow you to 
+               examine the trends and patterns in decision making. 
+               You can apply filters to the data based on asylum income group, 
+               origin income group, origin region, and asylum region. 
+               Additionally, the tab provides key performance indicators 
+               such as total recognized decisions, total rejected decisions, 
+               and the percentage of rejected decisions.", "</div>", "<br>"))
+    
+  })
   # Reactive element for descriptive filter:
   authority_data <- reactive({
     
-    dt.descriptive <- filter_region_analysis(dt.asylum, input$asylumIncomeGroupFilter, input$originIncomeGroupFilter, input$originRegionFilter, input$asylumRegionFilter)
+    dt.descriptive <- filter_region_analysis(dt.asylum, 
+                                             input$asylumIncomeGroupFilter, 
+                                             input$originIncomeGroupFilter, 
+                                             input$originRegionFilter, 
+                                             input$asylumRegionFilter)
+    
     dt.grouped.authority <- dt.descriptive %>%
       group_by(Authority) %>%
       summarise(Total_decisions = sum(Total.decisions))
@@ -45,7 +65,17 @@ server <- function(input, output, session) {
     return(dt.grouped.authority)
   })
   
-  filter_region_analysis <- function(dt.descriptive, asylumIncomeGroupFilter, originIncomeGroupFilter ,
+  check_dt_size_alert_alert <- function(dt) {
+    
+    if (nrow(na.omit(dt)) == 0) {
+      shinyalert(title = "No Data Available!", 
+                 text = "There is no data matching your criteria.", 
+                 type = "error")
+    }
+  }
+  
+  filter_region_analysis <- function(dt.descriptive, asylumIncomeGroupFilter,
+                                     originIncomeGroupFilter, 
                                      originRegionFilter, asylumRegionFilter){
     # Method to use the filter of the region analysis on a data table.
     if (input$asylumIncomeGroupFilter != "No Filter") {
@@ -62,12 +92,12 @@ server <- function(input, output, session) {
       dt.descriptive <- dt.descriptive[dt.descriptive$Asylum_Region == asylumRegionFilter, ]
     }
     return(dt.descriptive)
-    
   }
   
   # Introduction for Descriptive section
   output$introduction_descriptives <- renderText({
-    HTML(paste("<h1 style='color:green;'>", "Descriptive Statistics", "</h1>", "<br>"))
+    HTML(paste("<h1 style='color:green;'>", "Descriptive Statistics", 
+               "</h1>", "<br>"))
   })
   
   # Bar chart top 5 asylum countries
@@ -112,11 +142,15 @@ server <- function(input, output, session) {
   
   custom_theme <- function() {
     theme_minimal() +
-      theme(plot.title = element_text(face = "bold", size = 16, hjust = 0.5),
-            axis.title = element_text(face = "bold", size = 14),
-            axis.text = element_text(size = 12),
-            panel.grid.minor = element_line(color = "gray85"),
-            panel.grid.major = element_line(color = "gray75"))
+      theme(
+        plot.title = element_text(face = "bold", size = 20, hjust = 0.5),
+        axis.title = element_text(face = "bold", size = 16),
+        axis.text = element_text(size = 16),
+        panel.grid.minor = element_line(color = "gray85"),
+        panel.grid.major = element_line(color = "gray75"),
+        panel.background = element_rect(fill = "#f5f5f5"),
+        plot.background = element_rect(fill = "#f5f5f5")
+      )
   }
   
   output$yearly.decisions.plot <- renderPlot({
@@ -124,8 +158,7 @@ server <- function(input, output, session) {
       geom_line(color = "#1F78B4", size = 1.5, linetype = "solid") +
       labs(title = "Total Decisions per Year",
            x = "Year",
-           y = "Total Decisions") +
-      custom_theme()
+           y = "Total Decisions") + custom_theme()
   })
   
   output$recognized.decisions.plot <- renderPlot({
@@ -133,8 +166,7 @@ server <- function(input, output, session) {
       geom_line(color = "#1F78B4", size = 1.5, linetype = "solid") +
       labs(title = "Recognized Decisions per Year",
            x = "Year",
-           y = "Recognized Decisions") +
-      custom_theme()
+           y = "Recognized Decisions") + custom_theme()
   })
   
   output$rejected.decisions.plot <- renderPlot({
@@ -142,8 +174,7 @@ server <- function(input, output, session) {
       geom_line(color = "#E31A1C", size = 1.5, linetype = "solid") +
       labs(title = "Rejected Decisions per Year",
            x = "Year",
-           y = "Rejected Decisions") +
-      custom_theme()
+           y = "Rejected Decisions") + custom_theme()
   })
   
   output$otherwise.closed.decisions.plot <- renderPlot({
@@ -151,8 +182,7 @@ server <- function(input, output, session) {
       geom_line(color = "#33A02C", size = 1.5, linetype = "solid") +
       labs(title = "Otherwise Closed Decisions per Year",
            x = "Year",
-           y = "Otherwise Closed Decisions") +
-      custom_theme()
+           y = "Otherwise Closed Decisions") + custom_theme()
   })
   
   output$total.closed.decisions.plot <- renderPlot({
@@ -160,20 +190,26 @@ server <- function(input, output, session) {
       geom_line(color = "#6A3D9A", size = 1.5, linetype = "solid") +
       labs(title = "Total Closed Decisions per Year",
            x = "Year",
-           y = "Total Closed Decisions") +
-      custom_theme()
+           y = "Total Closed Decisions") + custom_theme()
   })
   
   output$combined.decisions.plot <- renderPlot({
     ggplot(descriptive_data()) +
-      geom_line(aes(x = Year, y = Rejected_decisions, color = "Rejected Decisions"), size = 1.5, linetype = "solid") +
-      geom_line(aes(x = Year, y = Otherwise_closed, color = "Otherwise Closed Decisions"), size = 1.5, linetype = "solid") +
-      geom_line(aes(x = Year, y = Total_closed, color = "Total Closed Decisions"), size = 1.5, linetype = "solid") +
+      geom_line(aes(x = Year, y = Rejected_decisions, 
+                    color = "Rejected Decisions"), 
+                size = 1.5, linetype = "solid") +
+      geom_line(aes(x = Year, 
+                    y = Otherwise_closed, color = "Otherwise Closed Decisions"), 
+                size = 1.5, linetype = "solid") +
+      geom_line(aes(x = Year, 
+                    y = Total_closed, color = "Total Closed Decisions"), 
+                size = 1.5, linetype = "solid") +
       labs(title = "Closed Decisions per Year",
            x = "Year",
            y = "Decisions") +
-      scale_color_manual(values = c("Rejected Decisions" = "#E31A1C", "Otherwise Closed Decisions" = "#33A02C", "Total Closed Decisions" = "#6A3D9A")) +
-      custom_theme()
+      scale_color_manual(values = c("Rejected Decisions" = "#E31A1C", 
+                                    "Otherwise Closed Decisions" = "#33A02C", 
+                                    "Total Closed Decisions" = "#6A3D9A")) + custom_theme()
   })
   
   output$authority.decisions.plot <- renderPlot({
@@ -219,8 +255,8 @@ server <- function(input, output, session) {
     
     edges_df <- SpatialLinesDataFrame(edges_lines, edges)
     
-    pal <- colorQuantile(palette = "YlOrRd", domain = unique(edges$weight), n = 10)
-    
+    pal <- colorNumeric(palette = "YlGn", domain = unique(edges$weight), n = 10)
+
     # Calculate quantiles and create labels
     quantiles <- quantile(edges$weight, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
     
@@ -257,11 +293,8 @@ server <- function(input, output, session) {
     
     edges_df <- SpatialLinesDataFrame(edges_lines, edges)
     
-    pal <- colorQuantile(palette = "YlOrRd", domain = unique(edges$weight), n = 10)
-    
-    # Calculate quantiles and create labels
-    quantiles <- quantile(edges$weight, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
-    
+    pal <- colorNumeric(palette = "YlOrRd", domain = unique(edges$weight), n = 10)
+
     leaflet(vert) %>% 
       addProviderTiles(providers$CartoDB.Voyager) %>% 
       addCircleMarkers() %>% 
@@ -280,6 +313,7 @@ server <- function(input, output, session) {
   })
   
   # Introduction to circle network 
+
   output$header.cir <- renderText({
     HTML(paste("<h1 style='color:green;'>", "Network Exploration", "</h1>", "<br>"))
   }) 
@@ -287,6 +321,7 @@ server <- function(input, output, session) {
   # Introduction to circle network 
   output$introduction.cir <- renderText({
     HTML(paste("<h4>", "<strong>", "What you find here", "</strong>", "</h4>", "On this webpage, you can view a comprehensive network graph that displays the asylum application patterns across the world. Each country of origin is linked to the countries where people have applied for asylum. Hovering over the lines on the graph shows you the country of origin, the country of asylum, and the total number of asylum applications. You can filter the graph based on the year to observe changes in patterns over time. Additionally, we have categorized countries into five groups, which are explained further below. The graph can be filtered based on country and group, and the filtered connections will be highlighted in different colors to make it easier to analyze. The graph allows to find patterns.", "<br>", "<br>"))
+
   }) 
   
   # Shows circle network
@@ -309,6 +344,7 @@ server <- function(input, output, session) {
       rename_all(~gsub("\\.", " ", .)) # remove periods in column names
   }, row.names = FALSE)
   
+
  
   # Description of centrality measures for circle network
   output$description.between <- renderText({
@@ -319,6 +355,7 @@ server <- function(input, output, session) {
     HTML(paste("<b>", "Eigenvector", "</b>", "<br>", "Eigenvector is a centrality measure that takes into account both the number and importance of a node's direct neighbors in the network. Specifically, it assigns a higher score to a node that is connected to other high-scoring nodes in the network. In our context, eigenvector centrality could indicate which countries are connected to other highly influential countries in the network. A country with high eigenvector centrality would be connected to other countries that are themselves important within the network, potentially giving it a greater degree of influence or authority within the network as a whole. In contrast, a country with low eigenvector centrality may be more peripheral or disconnected from other influential countries in the network.
 
 ", "<br>"))
+
   })  
   
   output$description.close <- renderText({
@@ -359,12 +396,29 @@ server <- function(input, output, session) {
   
   # Introduction to network prediction
   output$introduction_pred <- renderText({
-    HTML(paste("<h1 style='color:green;'>", "Network Prediction", "</h1>", "<br>", "On this page you can find countries with similar patterns.", "<br>", "<br>"))
+
+    HTML(paste("<h1 style='color:green;'>", "Network Prediction", "</h1>", "<br>",
+               "On this page we included a Jaccard Index calculation that reveals how 
+               similar nations are based on their refugee flows. If two nations are showing similar behaviors, 
+               they may also have similar migration patterns and encounter comparable difficulties 
+               in aiding and assisting refugees.
+               With the filter, you can enter a country name and see a list of the top countries that are 
+               most likely to have similar refugee behavior based on our Jaccard Index calculation. Also it is 
+               possible to distinguish if a country has similar patterns in terms of being the country of origin 
+               and being the country of asylum.", "<br>", "<br>",
+               
+               "<b>", "Jaccard Index", "</b>", "<br>",
+               "In general, the measure 'Jaccard Index' is a similarity measure in a network,
+               which is considering two vertices and their number of common neighbors divided by 
+               the total number of neighbors these both vertices have. It ranges from 0 to 1, 
+               with 0 indicating no similarity between the sets and 1 indicating complete similarity.
+               If necessary, it can also differentiate in directed network graphs between incoming and outgoing edges.", "<br>", "<br>"))
   })
-  
+
+
   # Create a prediction
   output$mymap_pred <- renderLeaflet({
-    graph_pred <- create_prediction_graph(input$asylum)
+    graph_pred <- create_prediction_graph(input$country, input$in_out)
     vert <- graph_pred$vert
     edges <- graph_pred$edges
     g <- graph_pred$graph
@@ -372,8 +426,38 @@ server <- function(input, output, session) {
     
     leaflet(vert) %>% 
       addProviderTiles(providers$CartoDB.Voyager) %>% 
-      addCircleMarkers() %>% 
-      addPolylines(data = edges_lines, weight = 1)
+      addCircleMarkers(color = "green") %>% 
+      addPolylines(data = edges_lines, weight = 2, color = "green", dashArray = "5,10")
+  })
+  
+  
+  #describe prediction
+  output$description_pred <- renderText({
+    HTML(paste("<br>",
+               "Analyzing refugee flows is an important task for understanding the complex network 
+               of relationships that exist between countries of origin and countries of asylum.
+               Using the Jaccard Index, we can identify which countries are similar regarding their refugee 
+               behavior. In this case, we are using it to measure the similarity between the refugee flows of two countries.
+               If two countries have similar refugee flows, it suggests that they may have similar migration patterns and
+               face similar challenges in providing aid and support to refugees. It is possible to identify areas where 
+               international cooperation and collaboration may be beneficial in addressing refugee-related issues.", "<br>",
+               "Differentiating between country of origin and country of asylum is crucial in this analysis. The country 
+               of origin refers to the country where the refugee is from, while the country of asylum is the country where 
+               the refugee is seeking asylum or refuge. Both countries are in very different situations, which is why it is
+               important to differentiate between them regarding our analysis.
+               Overall, this analysis is helpful for understanding the complex network of relationships surrounding refugee
+               migration and identifying patterns that can inform policy decisions and support efforts for refugees."))
+    })
+  
+  # Statistics to country of origin network
+  output$pred_info <- renderTable({
+    # access the igraph return of the graph_data function
+    graph <- create_prediction_graph(input$country, input$in_out)
+    g <- graph$g_old
+    data.frame(
+      Country = graph$vert$name[!(graph$vert$name == input$country)],
+      "Jaccard Index" = graph$edges$weight
+    )
   })
   
   # Introduction for About section
