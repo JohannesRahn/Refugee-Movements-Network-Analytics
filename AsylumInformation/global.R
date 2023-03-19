@@ -771,7 +771,8 @@ descriptives <- function() {
   plot.top.rejection.rate <- ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), 
                                                                 y = rejection.rate, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = 0, image = image.files4), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = 0, image = image.files4), 
+                        size = 0.08) +
     geom_text(aes(label = round(rejection.rate, 1)), vjust = -0.5, size = 4) + # Add data labels to bars as percentages
     labs(x = "Countries of Asylum", y = "Rejection Rate") + # Remove x-axis label
     ggtitle("Top 5 Countries of Asylum by Rejection Rate") +
@@ -828,12 +829,16 @@ descriptives <- function() {
                      color = ~pal(rejection.rate), fillOpacity = 10,
                      radius = 10,
                      popup = ~paste("Country: ", Country.of.asylum, "<br>",
-                                    "Rejection Rate: ", round((rejection.rate * 100), 1), "%", "<br>",
-                                    "Total Decisions: ", total.decisions, "<br>",
-                                    "Total Rejections: ", total.rejections)) %>%
+                                    "Rejection Rate: ", 
+                                    round((rejection.rate * 100), 1), "%", "<br>",
+                                    "Total Decisions: ", 
+                                    total.decisions, "<br>",
+                                    "Total Rejections: ", 
+                                    total.rejections)) %>%
     addLegend(pal = pal, values = df.rejections.map$rejection.rate,
               title = "Rejection Rate", position = "bottomright")
   
   
-  return(list(plot.top.asylum, plot.top.origin, plot.top.rejection, plot.top.rejection.rate, plot.income.level, leaflet.rejection))
+  return(list(plot.top.asylum, plot.top.origin, plot.top.rejection, 
+              plot.top.rejection.rate, plot.income.level, leaflet.rejection))
 }
