@@ -351,6 +351,11 @@ server <- function(input, output, session) {
     statistics
   })
   
+  # Explanation of groups in circular network graph
+  output$groups_circ_graph <- renderText({
+    HTML(paste("<h4>", "Explanation of created groups for the circular network graph", "</h4>", "<br>", "<strong>", "Asylum Country:", "</strong>", "An asylum country is defined as a country that has a total number of refugees of zero and an amount of asylum seekers bigger than zero.", "<br>", "<br>", "<strong>", "Refugee Country:", "</strong>", "A refugee country has an amount of refugees bigger than zero and no asylum seekers that come into the country.", "<br>", "<br>", "<strong>", "Mainly Refugee Country:", "</strong>", "The number of asylum seekers from this country and towards that country is bigger than zero. Furthermore, the ratio of refugees and asylum seekers in that country is greater than 100.", "<br>", "<br>", "<strong>", "Dual Flow Country:", "</strong>", "The number of asylum seekers from this country and towards that country is bigger than zero. Furthermore, the ratio of refugees and asylum seekers in that country is greater than 10.", "<br>", "<br>", "<strong>", "Mainly Asylum Country:", "</strong>", "The number of asylum seekers from this country and towards that country is bigger than zero. The ratio of asylum seekers in that country and refugees from that country is bigger than 100."))
+  })
+  
   # Introduction to network prediction
   output$introduction_pred <- renderText({
     HTML(paste("<h1 style='color:green;'>", "Network Prediction", "</h1>", "<br>", "On this page you can find countries with similar patterns.", "<br>", "<br>"))

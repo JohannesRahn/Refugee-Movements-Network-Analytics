@@ -274,8 +274,12 @@ ui <- dashboardPage(
               fluidRow(
                 column(3, radioButtons("col", "Choose a column:",
                               choices = c("betweenness", "closeness", "eigenvector"), selected = "betweenness")),
-                column(3, tableOutput("statistics.circ")),
-              )),
+                column(3, tableOutput("statistics.circ"))),
+              fluidRow(
+                column(6, uiOutput("groups_circ_graph"))
+              )
+      ),
+      
       tabItem(tabName = "network_prediction",
               fluidRow(
                 column(9, uiOutput("introduction_pred")),
@@ -283,10 +287,8 @@ ui <- dashboardPage(
               fluidRow(
                 column(3, pickerInput("asylum", "Country of asylum", choices = unique(dt.asylum$Country.of.asylum[dt.asylum$Country.of.asylum != "Unknown"]), options = list(actions_box = TRUE), selected="Germany", multiple=FALSE)),
                 column(width = 9,
-                       leafletOutput("mymap_pred"),
-                )
+                       leafletOutput("mymap_pred"))
               ),
-              
       ),
       tabItem(tabName = "origin_graph",
               fluidRow(
