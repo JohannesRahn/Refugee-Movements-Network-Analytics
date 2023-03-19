@@ -226,7 +226,6 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
   } else {
     # Create a new vertex attribute indicating whether the vertex should be included in the income filter
     filtered.vertices <- subset(dt.location.vertices, income %in% c(income_level) | type == FALSE)
-    View(filtered.vertices)
     # Create a vector with names
     filtered.vertices.vec <- filtered.vertices$name
     
@@ -237,7 +236,6 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
     filtered.decisions <- dt.asylum.filtered$Total.decisions[filtered.edges.idx]
     
     unique.filtered.edges <- unique(filtered.edges)
-    View(unique.filtered.edges)
     edges <- unique.filtered.edges
     
     g <- graph.data.frame(filtered.edges, directed = TRUE, vertices = filtered.vertices)
@@ -251,8 +249,7 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
   
   gg <- get.data.frame(g, "both")
   gg <- lapply(gg, function(df) df[complete.cases(df), ])
-  View(gg)
-  
+
   vert <- gg$vertices
   vert <- vert[complete.cases(vert), ]
   coordinates(vert) <- ~lon+lat
@@ -288,20 +285,22 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
 
 circular.graph <- function(year) {
   dt.asylum <- prepare_data()
+  # Filter out refugees that are stateless or where the origin is unknown
+  dt.asylum.filtered <- dt.asylum[!(dt.asylum$Country.of.origin == "Unknown " | dt.asylum$Country.of.asylum == "Unknown " | dt.asylum$Country.of.origin == "Stateless"  | dt.asylum$Country.of.asylum == "Stateless"), ]
 
-  df.origin <- data.frame(dt.asylum %>%
+  df.origin <- data.frame(dt.asylum.filtered %>%
                               subset(Year == year) %>%
                               group_by(Country.of.origin, Year) %>%
                               summarize(Total = sum(Total.decisions)))
   colnames(df.origin) <- c("Country.of.origin", "Year", "Origin_total")
   
-  df.asylum.countries <- data.frame(dt.asylum %>%
+  df.asylum.countries <- data.frame(dt.asylum.filtered %>%
                                subset(Year == year) %>%
                                group_by(Country.of.asylum, Year) %>%
                                summarize(Total = sum(Total.decisions)))
   colnames(df.asylum.countries) <- c("Country.of.asylum", "Year", "Country_total")
   
-  df.origin.country <- data.frame(dt.asylum %>%
+  df.origin.country <- data.frame(dt.asylum.filtered %>%
                                       subset(Year == year) %>%
                                       group_by(Country.of.origin, Country.of.asylum, Year) %>%
                                       summarize(Total = sum(Total.decisions)))
@@ -403,7 +402,11 @@ circular.graph <- function(year) {
   eigen <- evcent(g.circ)$vector
   close <- closeness(g.circ)
 
+  # Create table with centrality statistics
   df.statistics <- data.frame(index = names(bet), country = V(g.circ)$label, betweenness = bet, eigenvector = eigen, closeness = close)
+  df.statistics <- df.statistics[!is.nan(df.statistics$closeness),]
+
+  
   df.statistics.bet.ordered <- df.statistics[order(-df.statistics$betweenness), c("country", "betweenness")]
   df.statistics.bet.ordered <- df.statistics.bet.ordered[1:10, ]
   
@@ -413,11 +416,12 @@ circular.graph <- function(year) {
   df.statistics.close.ordered <- df.statistics[order(-df.statistics$closeness), c("country", "closeness")]
   df.statistics.close.ordered <- df.statistics.close.ordered[1:10, ]
   
+  # create the fourth return which is the three centrality measures
   df.statistics.merged <- data.frame(
     Country_Betweenness = df.statistics.bet.ordered$country,
-    Betweenness = df.statistics.bet.ordered$betweenness,
+    Betweenness = format(round(df.statistics.bet.ordered$betweenness, 2)),
     Country_Eigenvector = df.statistics.eigen.ordered$country,
-    Eigenvector = df.statistics.eigen.ordered$eigenvector,
+    Eigenvector = format(round(df.statistics.eigen.ordered$eigenvector, 2)),
     Country_Closeness  = df.statistics.close.ordered$country,
     Closeness = format(round(df.statistics.close.ordered$closeness, 4))
   )

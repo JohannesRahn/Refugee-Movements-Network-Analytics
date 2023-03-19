@@ -326,11 +326,12 @@ server <- function(input, output, session) {
   })
   
   # Creates a table with statistical information about circle network
-  output$betweenness <- renderTable({
-      # access the igraph return of the graph_data function
-      df <- graph_data()[[3]]
-      df
+  output$betweenness <- DT::renderDataTable({
+    # access the igraph return of the graph_data function
+    df <- graph_data()[[3]]
+    DT::datatable(df, rownames = FALSE, options = list(dom = 't'))
   })
+  
   
   # Show Table with min/max/median values 
   output$statistics.circ <- renderTable({
@@ -339,11 +340,11 @@ server <- function(input, output, session) {
                   "betweenness" = df$betweenness,
                   "closeness" = format(round(df$closeness, 4)),
                   "eigenvector" = df$eigenvector)
-    min.val <- min(col, na.rm = TRUE)
-    max.val <- max(col, na.rm = TRUE)
+    min.val <- min(col)
+    max.val <- max(col)
     mean.val <- mean(col, na.rm = TRUE)
     median.val <- median(col, na.rm = TRUE)
-    sd.val <- sd(col, na.rm = TRUE)
+    sd.val <- round(sd(col), 6)
     statistics <- data.frame(
       Statistic = c("Minimum", "Mean", "Median", "Maximum", "Standard Deviation"),
       Value = c(min.val, mean.val, median.val, max.val, sd.val)

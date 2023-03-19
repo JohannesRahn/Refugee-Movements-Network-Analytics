@@ -263,9 +263,11 @@ ui <- dashboardPage(
                 column(6, HTML("<br><h2><strong>Details into Centrality Measures</strong></h2><br>"))
               ),
               fluidRow(
-                column(12, tableOutput("betweenness")),
+                column(12, DT::dataTableOutput("betweenness")),
               ),
-              
+              fluidRow(
+                column(4, HTML("<br>", "<br>"))
+              ),
               fluidRow(
                 column(4, uiOutput("description.between")),
                 column(4, uiOutput("description.eigen")),
