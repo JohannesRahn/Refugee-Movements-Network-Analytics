@@ -1,5 +1,4 @@
 source("server.R")
-#useShinyalert()
 
 dt.asylum <- prepare_data()
 #dt.asylum.aggregated <- aggregate_data(dt.asylum)
@@ -143,7 +142,9 @@ ui <- dashboardPage(
                   column(12, uiOutput("introduction_descriptives"))
                 ),
                 fluidRow(
-                  column(12, HTML("<p> &nbsp; &nbsp; &nbsp; This overview includes valuable statistical analysis from 2000 to 2022.</p>"))
+                  column(12, HTML(
+                    "<p> &nbsp; &nbsp; &nbsp; This overview includes valuable 
+                    statistical analysis from 2000 to 2022.</p>"))
                 ),
                 tags$div(
                   class = "container-fluid",
@@ -154,57 +155,125 @@ ui <- dashboardPage(
                       tabsetPanel(
                         tabPanel("Total Asylum",
                                  fluidRow(
-                                   column(6, plotOutput("total.asylum", width = "100%")),
-                                   column(6, HTML("<h3><strong>Description of Total Asylum</strong></h3><p style='text-align: justify;'>This graph shows the top 5 countries in terms of asylum decisions, categorised by the variable '<strong><em>country of asylum</em></strong>', which refers to the host or asylum country.</p><p style='text-align: justify;'>Surprisingly, despite having a much larger population, the US is only in second place, with Germany having the most asylum decisions at 4.3 million. However, it's important to note that since 2015, the Syrian war and other conflicts in the Middle East have led to a significant influx of refugees into the EU, particularly France and the UK. The remarkable capacity to host refugees and its impact on society as a whole should therefore be highlighted.</p>"))
+                                   column(6, plotOutput("total.asylum", 
+                                                        width = "100%")),
+                                   column(6, HTML("
+        <h3><strong>Description of Total Asylum</strong></h3><p 
+        style='text-align: justify;'>This graph shows the top 5 
+        countries in terms of asylum decisions, categorised by 
+        the variable '<strong><em>country of asylum</em></strong>', 
+        which refers to the host or asylum country.</p><p style='text-align: 
+        justify;'>Surprisingly, despite having a much larger population, the US
+        is only in second place, with Germany having the most asylum decisions 
+        at 4.3 million. However, it's important to note that since 2015, the 
+        Syrian war and other conflicts in the Middle East have led to a 
+        significant influx of refugees into the EU, particularly France 
+        and the UK. The remarkable capacity to host refugees and its 
+        impact on society as a whole should therefore be highlighted.</p>"))
                                  )
                         ),
                         tabPanel("Total Origin",
                                  fluidRow(
-                                   column(6, plotOutput("total.origin", width = "100%")),
-                                   column(6,
-                                          HTML('
-        <h3><strong>Description of Total Origin</strong></h3>
-        <p>This graph shows the top 5 countries of origin <em><strong>"Country.of.origin"</strong></em>. As logically indicated in the first graph <strong>(Total Asylum)</strong>, we have most refugees from countries in the Middle East. <strong>Afghanistan</strong> tops the list, followed by <strong>Syria</strong> and <strong>Iraq</strong>. This is mainly due to the conflict in Afghanistan, which has been going on since 2001. Syria has been ravaged by war since 2011, which is reflected in the data and leads to a flow of refugees into Central European countries. The war in Iraq since 2003 and its massive refugee flows are also reflected in the data. The war in <strong>Serbia and Kosovo</strong>, which is the only European country in this Top 5 list, is particularly noteworthy. Finally, it is important to talk about the <strong>"Unknown"</strong> countries. These are stateless persons or persons whose country of origin has not been registered.</p>
-        <p style="text-align: justify;">&nbsp;</p>
-      ')
+                                   column(6, plotOutput("total.origin", 
+                                                        width = "100%")),
+                                   column(6, HTML('
+  <h3><strong>Description of Total Origin</strong></h3>
+  <p>This graph shows the top 5 countries of origin 
+  <em><strong>"Country.of.origin"</strong></em>. 
+  As logically indicated in the first graph <strong>(Total Asylum)</strong>, 
+  we have most refugees from countries in the Middle East. 
+  <strong>Afghanistan</strong> tops the list, followed by 
+  <strong>Syria</strong> and <strong>Iraq</strong>. 
+  This is mainly due to the conflict in Afghanistan, 
+  which has been going on since 2001. Syria has been ravaged by war since 2011, 
+  which is reflected in the data and leads to a flow of refugees into Central 
+  European countries. The war in Iraq since 2003 and its massive refugee flows 
+  are also reflected in the data. The war in <strong>Serbia and Kosovo</strong>, 
+  which is the only European country in this Top 5 list, is particularly 
+  noteworthy. Finally, it is important to talk about the 
+  <strong>"Unknown"</strong> countries. These are stateless persons or persons 
+  whose country of origin has not been registered.</p>
+  <p style="text-align: justify;">&nbsp;</p>
+')
+                                          
                                    )
                                  )
 
                         ),
                         tabPanel("Total Rejection",
                                  fluidRow(
-                                   column(6, plotOutput("total.rejection", width = "100%")),
-                                   column(6,
-                                          HTML('<h3><strong>Description of Total Rejections</strong></h3>
-      <p>From the graph we can observe the <strong>Top 5 asylum countries with the most rejected applications</strong> in total numbers. It is striking that <strong>France has significantly more rejections than Germany</strong>, even though France has accepted significantly fewer refugees in total <strong>(2.4M vs. 4.3M)</strong>. This suggests that <strong>Germany has a much lower rejection rate and a much more liberal refugee policy</strong>. The exact rejection rate for each country can be obtained from the rejection map underneath.&nbsp;</p>
+                                   column(6, plotOutput("total.rejection", 
+                                                        width = "100%")),
+                                   column(6, HTML(
+      '<h3><strong>Description of Total Rejections</strong></h3>
+      <p>From the graph we can observe the <strong>Top 5 asylum countries 
+      with the most rejected applications</strong> in total numbers. 
+      It is striking that <strong>France has significantly more rejections than 
+      Germany</strong>, even though France has accepted significantly fewer 
+      refugees in total <strong>(2.4M vs. 4.3M)</strong>. 
+      This suggests that <strong>Germany has a much lower rejection rate 
+      and a much more liberal refugee policy</strong>. 
+      The exact rejection rate for each 
+      country can be obtained from the rejection map underneath.&nbsp;</p>
       <p style="text-align: justify;">&nbsp;</p>')
+                                          
                                    )
                                  )
 
                         ),
                         tabPanel("Total Rejection Rate",
                                  fluidRow(
-                                   column(6, plotOutput("total.rejection.rate", width = "100%")),
+                                   column(6, plotOutput("total.rejection.rate", 
+                                                        width = "100%")),
                                    column(6,
-                                          HTML('<h3><strong>Description of Total Rejection Rate</strong></h3>
-            <p>From the graph of the top 5 total rejections, we can determine the relative rejection of applications. <strong>Aruba</strong> tops the list with a <strong>rejection rate of 100%</strong>, but other island states also have what at first glance appears to be an extremely high rejection rate. However, this is due to the fact that these island states have a very low total number of decisions <strong>(e.g. Micronesia with only 54 total decisions)</strong> and tend to be very remote and far from potential trouble spots. However, <strong>Japan\'s</strong> extremely restrictive refugee policy is worth noting, with a <strong>rejection rate of 77.7%</strong>. This restrictive policy has been known for some time, but it is now <strong>facing increasing pressure from human rights organisations</strong> to offer refuge to more asylum seekers and refugees - but instead the Japanese parliament is considering new legislation to make its strict policy even stricter.</p>
-            <p style="text-align: justify;">&nbsp;</p>')
+      HTML('<h3><strong>Description of Total Rejection Rate</strong></h3>
+      <p>From the graph of the top 5 total rejections, we can determine 
+      the relative rejection of applications. <strong>Aruba</strong> tops the 
+      list with a <strong>rejection rate of 100%</strong>, but other island 
+      states also have what at first glance appears to be an extremely high 
+      rejection rate. However, this is due to the fact that these island 
+      states have a very low total number of decisions <strong>(e.g. Micronesia 
+      with only 54 total decisions)</strong> and tend to be very remote and far 
+      from potential trouble spots. However, <strong>Japan\'s</strong> extremely 
+      restrictive refugee policy is worth noting, with a <strong>rejection rate 
+      of 77.7%</strong>. This restrictive policy has been known for some time, 
+      but it is now <strong>facing increasing pressure from human rights 
+      organisations</strong> to offer refuge to more asylum seekers and 
+      refugees - but instead the Japanese parliament is 
+      considering new legislation to make its strict policy even stricter.</p>
+      <p style="text-align: justify;">&nbsp;</p>')
+                                          
                                    )
                                  )
 
                         ),
                         tabPanel("Decisions by Income",
                                  fluidRow(
-                                   column(6, plotOutput("decisions.by.income", width = "100%")),
+                                   column(6, plotOutput("decisions.by.income", 
+                                                        width = "100%")),
                                    column(6,
-                                          HTML('<h3><strong>Description of Decisions by Income</strong></h3>
-                  <p>This pie chart shows which country categories (according to UN income classification) shoulder the <strong>greatest burden of refugee flows</strong>. With an overwhelming majority of <strong>72%, the highest income countries bear the most burden</strong>. However, it is important to keep in mind that often poor neighboring countries of conflict countries bear most of the weight, but no official asylum application is received, or an application is not recorded and therefore does not appear in this dataset.</p>
-                  <p><strong>The income levels are defined as follows:</strong></p>
-                  <table style="border-collapse: collapse; width: 100%; height: 90px;" border="1">
+                                          HTML('
+                  <h3><strong>Description of Decisions by Income</strong></h3>
+                  <p>This pie chart shows which country categories 
+                  (according to UN income classification) shoulder the 
+                  <strong>greatest burden of refugee flows</strong>. With an 
+                  overwhelming majority of <strong>72%, the highest income 
+                  countries bear the most burden</strong>. However, it is 
+                  important to keep in mind that often poor neighboring 
+                  countries of conflict countries bear most of the weight, 
+                  but no official asylum application is received, or an 
+                  application is not recorded and therefore does not appear 
+                  in this dataset.</p>
+                  <p><strong>The income levels are defined as 
+                  follows:</strong></p>
+                  <table style="border-collapse: collapse; width: 100%; 
+                  height: 90px;" border="1">
                   <tbody>
                   <tr style="height: 18px;">
-                  <td style="width: 50%; height: 18px;"><strong>Group</strong></td>
-                  <td style="width: 50%; height: 18px;"><strong>GNI/capita for FY2023</strong></td>
+                  <td style="width: 50%; 
+                  height: 18px;"><strong>Group</strong></td>
+                  <td style="width: 50%; 
+                  height: 18px;"><strong>GNI/capita for FY2023</strong></td>
                   </tr>
                   <tr style="height: 18px;">
                   <td style="width: 50%; height: 18px;">Low Income</td>
@@ -237,8 +306,13 @@ ui <- dashboardPage(
                     tags$div(
                       class = "col-sm-12",
                       fluidRow(
-                        column(12, HTML("<h3><strong>Description of Rejections Map</strong></h3>")),
-                        column(8, HTML("<p style='text-align: justify;'>The <strong>interactive map of rejections</strong> shows the <strong>rejection rate, the total number of decisions and the total number of rejections for each country</strong> included in the dataset.</p>")),
+                        column(12, HTML("
+                  <h3><strong>Description of Rejections Map</strong></h3>")),
+                        column(8, HTML(
+                  "<p style='text-align: justify;'>The <strong>interactive map 
+                  of rejections</strong> shows the <strong>rejection rate, the 
+                  total number of decisions and the total number of rejections 
+                  for each country</strong> included in the dataset.</p>")),
                         column(12, leafletOutput("rejections.map"))
                       )
                     )

@@ -100,7 +100,9 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
   dt.asylum <- prepare_data()
   dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.origin == country & dt.asylum$Year == Year_input, ])
   dt.asylum.filtered <- dt.asylum.filtered[!(dt.asylum.filtered$Country.of.origin == "Unknown" | dt.asylum.filtered$Country.of.asylum == "Unknown"), ]
-
+  
+  if (nrow(dt.asylum.filtered) == 0) {
+    shinyalert("No Data Available!", "There is no data matching your criteria.", type = "error")}
   
   lon.lat <- function() {
     dt.location.vertices <- data.table(dt.asylum.filtered) 
@@ -114,7 +116,7 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
     
     dt.all.locations <- rbind(dt.location.origin, dt.location.asylum)
     dt.all.locations <- dt.all.locations[, list(unique(dt.all.locations))]
-
+    
     
     return(dt.all.locations)
   }
@@ -135,10 +137,13 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
     weights <- E(g)$weight
     plot(g)
     
-  # There is a chosen income level
+    # There is a chosen income level
   } else {
     # Create a new vertex attribute indicating whether the vertex should be included in the income filter
     filtered.vertices <- subset(dt.location.vertices, income %in% c(income_level) | type)
+    
+    if (nrow(filtered_vertices) == 0) {
+      shinyalert("No Data Available!", "There is no data matching your criteria.", type = "error")}
     
     # Create a vector with names
     filtered.vertices.vec <- filtered.vertices$name
@@ -168,8 +173,9 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
   coordinates(vert) <- ~lon+lat
   
   edges <- gg$edges
-
+  
   # Loop through the columns of the edges data frame
+  
   edges.sp <- apply(edges, 1, function(row) {
     from_vert <- vert[vert$name == row["from"], ]
     to_vert <- vert[vert$name == row["to"], ]
@@ -191,14 +197,18 @@ create.origin.graph <- function(dt.asylum, country, Year_input, income_level) {
   })
   
   edges.sp <- do.call(rbind, edges.sp)
-
+  
   return(list(graph = g, vert = vert, edges = edges, edges_lines = edges.sp))
 }
 
 create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
   dt.asylum <- prepare_data()
+  
   dt.asylum.filtered <- data.table(dt.asylum[dt.asylum$Country.of.asylum == country & dt.asylum$Year == Year_input, ])
   dt.asylum.filtered <- dt.asylum.filtered[!(dt.asylum.filtered$Country.of.origin == "Unknown " | dt.asylum.filtered$Country.of.asylum == "Unknown " | dt.asylum.filtered$Country.of.origin == "Stateless"  | dt.asylum.filtered$Country.of.asylum == "Stateless"), ]
+  
+  if (nrow(dt.asylum.filtered) == 0) {
+    shinyalert("No Data Available!", "There is no data matching your criteria.", type = "error")}
   
   lon.lat <- function() {
     dt.location.vertices <- data.table(dt.asylum.filtered) 
@@ -228,11 +238,12 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
     g <- set_edge_attr(g, "weight", value= dt.asylum.filtered$Total.decisions + 0.001)
     weights <- E(g)$weight
     plot(g)
-
+    
     # There is a chosen income level
   } else {
     # Create a new vertex attribute indicating whether the vertex should be included in the income filter
     filtered.vertices <- subset(dt.location.vertices, income %in% c(income_level) | type == FALSE)
+    
     # Create a vector with names
     filtered.vertices.vec <- filtered.vertices$name
     
@@ -247,7 +258,7 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
     
     g <- graph.data.frame(filtered.edges, directed = TRUE, vertices = filtered.vertices)
     g <- set_edge_attr(g, "weight", value = filtered.decisions + 0.001)
-
+    
     weights <- E(g)$weight
     
     # Plot the filtered graph
@@ -257,7 +268,7 @@ create.asylum.graph <- function(dt.asylum, country, Year_input, income_level) {
   
   gg <- get.data.frame(g, "both")
   gg <- lapply(gg, function(df) df[complete.cases(df), ])
-
+  
   vert <- gg$vertices
   vert <- vert[complete.cases(vert), ]
   coordinates(vert) <- ~lon+lat
@@ -295,23 +306,23 @@ circular.graph <- function(year) {
   dt.asylum <- prepare_data()
   # Filter out refugees that are stateless or where the origin is unknown
   dt.asylum.filtered <- dt.asylum[!(dt.asylum$Country.of.origin == "Unknown " | dt.asylum$Country.of.asylum == "Unknown " | dt.asylum$Country.of.origin == "Stateless"  | dt.asylum$Country.of.asylum == "Stateless"), ]
-
+  
   df.origin <- data.frame(dt.asylum.filtered %>%
-                              subset(Year == year) %>%
-                              group_by(Country.of.origin, Year) %>%
-                              summarize(Total = sum(Total.decisions)))
+                            subset(Year == year) %>%
+                            group_by(Country.of.origin, Year) %>%
+                            summarize(Total = sum(Total.decisions)))
   colnames(df.origin) <- c("Country.of.origin", "Year", "Origin_total")
   
   df.asylum.countries <- data.frame(dt.asylum.filtered %>%
-                               subset(Year == year) %>%
-                               group_by(Country.of.asylum, Year) %>%
-                               summarize(Total = sum(Total.decisions)))
+                                      subset(Year == year) %>%
+                                      group_by(Country.of.asylum, Year) %>%
+                                      summarize(Total = sum(Total.decisions)))
   colnames(df.asylum.countries) <- c("Country.of.asylum", "Year", "Country_total")
   
   df.origin.country <- data.frame(dt.asylum.filtered %>%
-                                      subset(Year == year) %>%
-                                      group_by(Country.of.origin, Country.of.asylum, Year) %>%
-                                      summarize(Total = sum(Total.decisions)))
+                                    subset(Year == year) %>%
+                                    group_by(Country.of.origin, Country.of.asylum, Year) %>%
+                                    summarize(Total = sum(Total.decisions)))
   
   # merge three dataframes into one
   df.total <- merge(df.origin, df.origin.country, by=c("Country.of.origin", "Year"))
@@ -340,39 +351,39 @@ circular.graph <- function(year) {
   
   #Create a node and edge data frame:
   df.node <- (data.frame(Country = df.countries.origin$Country, 
-                           Origin_total = df.total[match(df.countries.origin$Country,
-                                                           df.total$Origin), 6]))
+                         Origin_total = df.total[match(df.countries.origin$Country,
+                                                       df.total$Origin), 6]))
   df.node <- data.frame(Country = df.node$Country,
-                          Origin_total = df.node$Origin_total,
-                          Country_total = df.total[match(df.countries.origin$Country,
-                                                           df.total$Country), 8])
+                        Origin_total = df.node$Origin_total,
+                        Country_total = df.total[match(df.countries.origin$Country,
+                                                       df.total$Country), 8])
   df.node$id <- seq.int(nrow(df.node))
   str(df.node)
   df.node[is.na(df.node)] <- 0
   
   df.node$group <-  ifelse(df.node$Origin_total == 0 & df.node$Country_total >0, "Asylum Country", 
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total == 0, "Refugee Country",
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 100, "Mainly Refugee Country",
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 10, "Dual Flow Country",
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Country_total/df.node$Origin_total > 100, "Mainly Asylum Country", "Dual Flow Country")))))
+                           ifelse(df.node$Origin_total > 0 & df.node$Country_total == 0, "Refugee Country",
+                                  ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 100, "Mainly Refugee Country",
+                                         ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 10, "Dual Flow Country",
+                                                ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Country_total/df.node$Origin_total > 100, "Mainly Asylum Country", "Dual Flow Country")))))
   
   df.node$value <-  ifelse(df.node$Origin_total > df.node$Country_total, df.node$Origin_total, df.node$Country_total)
   df.node$color <-  ifelse(df.node$Origin_total == 0 & df.node$Country_total >0, "#80CBC4",
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total == 0, "#EF9A9A",
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 100, "#FFE082",
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 10, "#FFF59D",
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Country_total/df.node$Origin_total > 100, "#B2DFDB", "#FFF59D")))))
+                           ifelse(df.node$Origin_total > 0 & df.node$Country_total == 0, "#EF9A9A",
+                                  ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 100, "#FFE082",
+                                         ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 10, "#FFF59D",
+                                                ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Country_total/df.node$Origin_total > 100, "#B2DFDB", "#FFF59D")))))
   df.node$title <- paste0("<p>",df.node$Country," ", year, ":","<br>",
-                            "Refugees to ",df.node$Country,": ",
-                            df.node$Country_total,"<br>",
-                            "Asylum seekers coming from ",df.node$Country,
-                            ":",df.node$Origin_total,"</p>", sep="")
+                          "Refugees to ",df.node$Country,": ",
+                          df.node$Country_total,"<br>",
+                          "Asylum seekers coming from ",df.node$Country,
+                          ":",df.node$Origin_total,"</p>", sep="")
   df.node$shadow <- FALSE
   df.node$shape <- ifelse(df.node$Origin_total == 0 & df.node$Country_total > 0, "dot",
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total == 0, "triangle",
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 100, "triangle",
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 10, "square",
-                      ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Country_total/df.node$Origin_total > 100, "dot", "square")))))
+                          ifelse(df.node$Origin_total > 0 & df.node$Country_total == 0, "triangle",
+                                 ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 100, "triangle",
+                                        ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Origin_total/df.node$Country_total > 10, "square",
+                                               ifelse(df.node$Origin_total > 0 & df.node$Country_total > 0 & df.node$Country_total/df.node$Origin_total > 100, "dot", "square")))))
   
   # Choose relevant columns for nodes
   df.node.relevant <- df.node[, c(4, 1, 5, 6, 10, 8, 7, 9)]
@@ -393,27 +404,27 @@ circular.graph <- function(year) {
   
   # create an igraph network
   g.circ <- graph_from_data_frame(df.edge.relevant, directed = TRUE, vertices = df.node.relevant)
-
+  
   # create the same graph with visNetwork for better visualization
   visnetwork.refugees <- visNetwork(df.node.relevant, df.edge.relevant, width = "100%", height = "600px") %>%
     visOptions(nodesIdSelection = TRUE, selectedBy = "group", highlightNearest = list(enabled = TRUE, degree = 1)) %>% 
     visEdges(physics = FALSE, arrows =list(to = list(enabled = TRUE, scaleFactor = 0.5))) %>% 
     visIgraphLayout(type = "full", layout = "layout_in_circle") %>% 
     visInteraction(hover = TRUE, navigationButtons = TRUE) #%>% 
-    visnetwork.refugees
-    
+  visnetwork.refugees
+  
   V(g.circ)$label
-
-
+  
+  
   # Execute the closeness function within the new environment
   bet <- betweenness(g.circ)
   eigen <- evcent(g.circ)$vector
   close <- closeness(g.circ)
-
+  
   # Create table with centrality statistics
   df.statistics <- data.frame(index = names(bet), country = V(g.circ)$label, betweenness = bet, eigenvector = eigen, closeness = close)
   df.statistics <- df.statistics[!is.nan(df.statistics$closeness),]
-
+  
   
   df.statistics.bet.ordered <- df.statistics[order(-df.statistics$betweenness), c("country", "betweenness")]
   df.statistics.bet.ordered <- df.statistics.bet.ordered[1:10, ]
@@ -433,21 +444,29 @@ circular.graph <- function(year) {
     Country_Closeness  = df.statistics.close.ordered$country,
     Closeness = format(round(df.statistics.close.ordered$closeness, 4))
   )
-    
-  return(list(visnetwork.refugees, g.circ, df.statistics.merged, df.statistics))}
   
+  return(list(visnetwork.refugees, g.circ, df.statistics.merged, df.statistics))}
+
 create_prediction_graph <- function(country, in_out) {
   dt.asylum <- prepare_data()
   
-  lon.lat <- function() {
+  lon_lat <- function() {
     dt.location.vertices <- data.table(dt.asylum) 
-    dt.location.origin <- dt.location.vertices[, c("Country.of.origin", "Origin_Capital_Lat", "Origin_Capital_Long")]
-    dt.location.origin <- rename(dt.location.origin,c("name" = "Country.of.origin", "lat" = "Origin_Capital_Lat", "lon" = "Origin_Capital_Long"))
-    dt.location.origin <- dt.location.origin[, list(unique(dt.location.origin), type = TRUE)]
+    dt.location.origin <- dt.location.vertices[, c(
+      "Country.of.origin", "Origin_Capital_Lat", "Origin_Capital_Long")]
+    dt.location.origin <- rename(dt.location.origin,c(
+      "name" = "Country.of.origin", "lat" = "Origin_Capital_Lat",
+      "lon" = "Origin_Capital_Long"))
+    dt.location.origin <- dt.location.origin[, list(unique(dt.location.origin),
+                                                    type = TRUE)]
     
-    dt.location.asylum <- dt.location.vertices[, c("Country.of.asylum", "Asylum_Capital_Lat", "Asylum_Capital_Long")]
-    dt.location.asylum <- rename(dt.location.asylum,c("name" = "Country.of.asylum", "lat" = "Asylum_Capital_Lat", "lon" = "Asylum_Capital_Long"))
-    dt.location.asylum <- dt.location.asylum[, list(unique(dt.location.asylum), type = FALSE)]
+    dt.location.asylum <- dt.location.vertices[, c(
+      "Country.of.asylum", "Asylum_Capital_Lat", "Asylum_Capital_Long")]
+    dt.location.asylum <- rename(dt.location.asylum,c(
+      "name" = "Country.of.asylum", "lat" = "Asylum_Capital_Lat", 
+      "lon" = "Asylum_Capital_Long"))
+    dt.location.asylum <- dt.location.asylum[, list(unique(dt.location.asylum),
+                                                    type = FALSE)]
     
     dt.all.locations <- rbind(dt.location.origin, dt.location.asylum)
     dt.all.locations <- dt.all.locations[!duplicated(name)]
@@ -457,7 +476,7 @@ create_prediction_graph <- function(country, in_out) {
     return(dt.all.locations)
   }
   
-  dt.location.vertices <- lon.lat()
+  dt.location.vertices <- lon_lat()
   edges <- dt.asylum[, c("Country.of.origin", "Country.of.asylum")]
   edges <- rename(edges, c("from" = "Country.of.origin", "to" = "Country.of.asylum"))
   
@@ -469,82 +488,84 @@ create_prediction_graph <- function(country, in_out) {
   g <- graph.data.frame(edges, directed = TRUE, vertices = dt.location.vertices)
   g <- set_edge_attr(g, "weight", value= dt.asylum$Total.decisions + 0.001)
   weights <- E(g)$weight
-  #plot(g)
   
   if (in_out == "Origin"){
-  # Calculate the similarity between all pairs of nodes
-    similarity_matrix <- similarity.jaccard(g, mode = "out")
+    # Calculate the similarity between all pairs of nodes
+    m.similarity.matrix <- similarity.jaccard(g, mode = "out")
   } else {
-    similarity_matrix <- similarity.jaccard(g, mode = "in")
+    m.similarity.matrix <- similarity.jaccard(g, mode = "in")
   }
-  # Set the diagonal to zero (because we don't want to predict self-loops)
-  diag(similarity_matrix) <- 0
+  
+  # Set the diagonal to zero
+  diag(m.similarity.matrix) <- 0
   
   # Predict the top n edges with highest similarity that don't already exist
   n <- 10
-  predicted.edges <- data.frame(as.matrix(which(similarity_matrix > 0, arr.ind = TRUE)))
-  colnames(predicted.edges) <- c("from", "to")
-  predicted.edges.weights <- similarity_matrix[as.matrix(predicted.edges)]
-  predicted.edges <- cbind(predicted.edges, predicted.edges.weights)
-  predicted.edges <- predicted.edges[order(-predicted.edges.weights), ]
-  predicted.edges <- predicted.edges[!(predicted.edges$from %in% edges$from &
-                                         predicted.edges$to %in% edges$to), ]
+  dt.predicted.edges <- data.frame(as.matrix(which(m.similarity.matrix > 0,
+                                                   arr.ind = TRUE)))
+  colnames(dt.predicted.edges) <- c("from", "to")
+  m.predicted.edges.weights <- m.similarity.matrix[as.matrix(dt.predicted.edges)]
+  dt.predicted.edges <- cbind(dt.predicted.edges, m.predicted.edges.weights)
+  dt.predicted.edges <- dt.predicted.edges[order(-m.predicted.edges.weights), ]
+  dt.predicted.edges <- dt.predicted.edges[!(dt.predicted.edges$from %in% edges$from &
+                                               dt.predicted.edges$to %in% edges$to), ]
   
-  vertex_lookup <- setNames(dt.location.vertices$name, dt.location.vertices$index)
-  predicted.edges$from <- vertex_lookup[predicted.edges$from]
-  predicted.edges$to <- vertex_lookup[predicted.edges$to]
+  vertex.lookup <- setNames(dt.location.vertices$name, dt.location.vertices$index)
+  dt.predicted.edges$from <- vertex.lookup[dt.predicted.edges$from]
+  dt.predicted.edges$to <- vertex.lookup[dt.predicted.edges$to] 
   
-
   if (in_out == "Origin"){
-    predicted_edges <- predicted_edges[(predicted_edges$from == country), ]
+    dt.predicted.edges <- dt.predicted.edges[(dt.predicted.edges$from == country), ]
   } else {
-    predicted_edges <- predicted_edges[(predicted_edges$to == country), ]
+    dt.predicted.edges <- dt.predicted.edges[(dt.predicted.edges$to == country), ]
   }
-  predicted_edges_filter <- predicted_edges[1:n, 1:2]
+  dt.predicted.edges.filter <- dt.predicted.edges[1:n, 1:2]
   
   # Create a new directed graph with the predicted edges
-  g_predicted_edges <- graph_from_edgelist(as.matrix(predicted_edges_filter), directed = TRUE)
-
   
-  # Create a new directed graph with the predicted edges
-  g_predicted_edges <- set_edge_attr(g_predicted_edges, "weight", value = predicted_edges$predicted_edges_weights[1:n])
-  weights <- E(g_predicted_edges)$weight
+  g.predicted.edges <- graph_from_edgelist(as.matrix(dt.predicted.edges.filter),
+                                           directed = TRUE)
   
-  gg_pred <- get.data.frame(g.predicted.edges, "both")
-  gg_vert <- gg_pred$vertices$name
-  gg_vert_pred <- dt.location.vertices[dt.location.vertices$name %in% gg_vert, ]
-  gg_vert_pred <- gg_vert_pred[complete.cases(gg_vert_pred), ]
+  g.predicted.edges <- set_edge_attr(g.predicted.edges, "weight",
+                                     value = dt.predicted.edges$m.predicted.edges.weights[1:n])
+  weights <- E(g.predicted.edges)$weight
   
-  coordinates(gg_vert_pred) <- ~lon+lat
+  gg.pred <- get.data.frame(g.predicted.edges, "both")
+  gg.vert <- gg.pred$vertices$name
+  gg.vert.pred <- dt.location.vertices[dt.location.vertices$name %in% gg.vert, ]
+  gg.vert.pred <- gg.vert.pred[complete.cases(gg.vert.pred), ]
   
-  edges <- gg_pred$edges
-  edges <- edges[(edges$to %in% gg_vert_pred$name) & (edges$from %in% gg_vert_pred$name), ]
+  coordinates(gg.vert.pred) <- ~lon+lat
+  
+  edges <- gg.pred$edges
+  edges <- edges[(edges$to %in% gg.vert.pred$name) &
+                   (edges$from %in% gg.vert.pred$name), ]
   
   # Loop through the columns of the edges data frame
-  edges.sp <- apply(edges, 1, function(row) {
-    from_vert <- gg_vert_pred[gg_vert_pred$name == row["from"], ]
-    to_vert <- gg_vert_pred[gg_vert_pred$name == row["to"], ]
+  
+  sp.edges <- apply(edges, 1, function(row) {
+    from.vert <- gg.vert.pred[gg.vert.pred$name == row["from"], ]
+    to.vert <- gg.vert.pred[gg.vert.pred$name == row["to"], ]
     
     # Check if either vertex is missing, and skip this edge if so
-    if (nrow(from_vert) == 0 || nrow(to_vert) == 0) {
+    if (nrow(from.vert) == 0 || nrow(to.vert) == 0) {
       return(NULL)
     }
     
-    as(rbind(from_vert, to_vert), "SpatialLines")
+    as(rbind(from.vert, to.vert), "SpatialLines")
   })
   
   # Remove NULL values from edges list
-  edges.sp <- edges.sp[!sapply(edges.sp, is.null)]
+  sp.edges <- sp.edges[!sapply(sp.edges, is.null)]
   
   # Assign IDs to edges
-  edges.sp <- lapply(1:length(edges.sp), function(i) {
-    spChFIDs(edges.sp[[i]], as.character(i))
+  sp.edges <- lapply(1:length(sp.edges), function(i) {
+    spChFIDs(sp.edges[[i]], as.character(i))
   })
   
-
-  edges_sp <- do.call(rbind, edges_sp)
-  return(list(g_old = g, graph = g_predicted_edges, vert = gg_vert_pred, edges = edges, edges_lines = edges_sp))
-
+  sp.edges <- do.call(rbind, sp.edges)
+  return(list(g.old = g, graph = g.predicted.edges,
+              vert = gg.vert.pred, edges = edges, edges.lines = sp.edges))
 }
 
 preparation_rejections <- function(){
@@ -570,8 +591,8 @@ descriptives <- function() {
     top_n(5, total.decisions)
   
   # create bar chart for top 5 country asylum
-  color_palette <- brewer.pal(n = 5, name = "PuBuGn")
-  image_files <- c(
+  color.palette <- brewer.pal(n = 5, name = "PuBuGn")
+  images.files.top.asylum <- c(
     "data/Flags/de.png", 
     "data/Flags/us.png", 
     "data/Flags/fr.png", 
@@ -580,29 +601,31 @@ descriptives <- function() {
   )
   
   # Create a new column in the data frame with the image file paths
-  df.top.asylum.5$image_file <- image_files
+  df.top.asylum.5$image.file <- images.files.top.asylum
   
   # Define a function to read the images from file and convert them to grobs
-  read_image <- function(file) {
+  read.image <- function(file) {
     img <- readPNG(file)
     grob <- rasterGrob(img, interpolate=TRUE)
     return(grob)
   }
   
   # Read the images from file and convert them to grobs
-  images <- lapply(image_files, read_image)
+  images <- lapply(images.files.top.asylum, read.image)
   
   # Convert the column to a vector before passing it to reorder()
   df.top.asylum.5$Country.of.asylum <- unlist(df.top.asylum.5$Country.of.asylum)
   
   # Create the plot with images
-  p1 <- ggplot(df.top.asylum.5, aes(x = reorder(Country.of.asylum, -total.decisions), y = total.decisions, fill = Country.of.asylum)) +
+  plot.top.asylum <- ggplot(df.top.asylum.5, aes(
+    x = reorder(Country.of.asylum, -total.decisions), 
+    y = total.decisions, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_files), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = images.files.top.asylum), size = 0.08) +
     geom_text(aes(label = paste0(round(total.decisions/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
     labs(x = "Countries of Asylum", y = "Total Decisions (in millions)") + # Remove x-axis label
     ggtitle("Top 5 Countries of Asylum by Total Decisions") +
-    scale_fill_manual(values = color_palette) + # Use the defined color palette
+    scale_fill_manual(values = color.palette) + # Use the defined color palette
     theme_minimal() +
     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0), # Increase font size of title
           axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
@@ -627,9 +650,9 @@ descriptives <- function() {
   df.top.origin.5 <- df.top.origin %>%
     arrange(desc(total.decisions)) %>%
     top_n(5, total.decisions)
-
-  color_palette <- brewer.pal(n = 5, name = "PuBuGn")
-  image_files2 <- c(
+  
+  color.palette <- brewer.pal(n = 5, name = "PuBuGn")
+  images.files.top.origin2 <- c(
     "data/Flags/un.png", 
     "data/Flags/af.png", 
     "data/Flags/sy.png", 
@@ -638,29 +661,30 @@ descriptives <- function() {
   )
   
   # Create a new column in the data frame with the image file paths
-  df.top.origin.5$image_file <- image_files2
+  df.top.origin.5$image.file <- images.files.top.origin2
   
   # Define a function to read the images from file and convert them to grobs
-  read_image <- function(file) {
+  read.image <- function(file) {
     img <- readPNG(file)
     grob <- rasterGrob(img, interpolate=TRUE)
     return(grob)
   }
   
   # Read the images from file and convert them to grobs
-  images <- lapply(image_files2, read_image)
+  images <- lapply(images.files.top.origin2, read.image)
   
   # Convert the column to a vector before passing it to reorder()
   df.top.origin.5$Country.of.origin <- unlist(df.top.origin.5$Country.of.origin)
   
   # Create the plot with images
-  p2 <- ggplot(df.top.origin.5, aes(x = reorder(Country.of.origin, -total.decisions), y = total.decisions, fill = Country.of.origin)) +
+  plot.top.origin <- ggplot(df.top.origin.5, aes(x = reorder(Country.of.origin, -total.decisions), 
+                                                 y = total.decisions, fill = Country.of.origin)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.origin, y = -1, image = image_files2), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.origin, y = -1, image = images.files.top.origin2), size = 0.08) +
     geom_text(aes(label = paste0(round(total.decisions/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
     labs(x = "Countries of Asylum", y = "Total Decisions (in millions)") + # Remove x-axis label
     ggtitle("Top 5 Countries of Origin by Total Decisions") +
-    scale_fill_manual(values = color_palette) + # Use the defined color palette
+    scale_fill_manual(values = color.palette) + # Use the defined color palette
     theme_minimal() +
     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0), # Increase font size of title
           axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
@@ -673,8 +697,6 @@ descriptives <- function() {
           axis.text.x = element_blank(), # Remove x-axis tick labels
           plot.margin = unit(c(1, 1, 1, 3), "lines")) # Add space on the right for x-axis labels
   
-  
-  
   ##### top 5 countries highest rejection 
   # sort df and get top 5 countries with highest rejections
   df.top.rejection5 <- rejections %>%
@@ -683,7 +705,7 @@ descriptives <- function() {
   
   # create bar chart for top 5 country asylum
   # Define a list of local file paths corresponding to the countries in the plot
-  image_files3 <- c(
+  images.files.top.rejection3 <- c(
     "data/Flags/fr.png", 
     "data/Flags/de.png", 
     "data/Flags/gb.png", 
@@ -692,25 +714,26 @@ descriptives <- function() {
   )
   
   # Create a new column in the data frame with the image file paths
-  df.top.rejection5$image_file <- image_files3
+  df.top.rejection5$image.file <- images.files.top.rejection3
   
   # Define a function to read the images from file and convert them to grobs
-  read_image <- function(file) {
+  read.image <- function(file) {
     img <- readPNG(file)
     grob <- rasterGrob(img, interpolate=TRUE)
     return(grob)
   }
   
   # Read the images from file and convert them to grobs
-  images <- lapply(image_files3, read_image)
+  images <- lapply(images.files.top.rejection3, read.image)
   
-  p3 <- ggplot(df.top.rejection5, aes(x = reorder(Country.of.asylum, -total.rejections), y = total.rejections, fill = Country.of.asylum)) +
+  plot.top.rejection <- ggplot(df.top.rejection5, aes(x = reorder(Country.of.asylum, -total.rejections), 
+                                                      y = total.rejections, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = image_files3), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = -1, image = images.files.top.rejection3), size = 0.08) +
     geom_text(aes(label = paste0(round(total.rejections/1e6, 1), "M")), vjust = -0.5, size = 4) + # Add data labels to bars and convert to millions
     labs(x = "Country with highest absolute rejections", y = "Total Rejections (in millions)") +
     ggtitle("Top 5 Countries with highest rejections") +
-    scale_fill_manual(values = color_palette) + # Use the defined color palette
+    scale_fill_manual(values = color.palette) + # Use the defined color palette
     theme_minimal() +
     theme(plot.title = element_text(size = 16, face = "bold", hjust = +0.5), # Increase font size of title
           axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
@@ -730,7 +753,7 @@ descriptives <- function() {
     arrange(desc(rejection.rate)) %>%
     top_n(5, rejection.rate)
   
-  image_files4 <- c(
+  images.files.top.rejection.rate4 <- c(
     "data/Flags/aw.png", 
     "data/Flags/fm.png", 
     "data/Flags/bs.png", 
@@ -739,19 +762,21 @@ descriptives <- function() {
   )
   
   # Create a new column in the data frame with the image file paths
-  df.top.rejection.rate5$image_file <- image_files4
+  df.top.rejection.rate5$image.file <- images.files.top.rejection.rate4
   
   # Read the images from file and convert them to grobs
-  images <- lapply(image_files4, read_image)
+  images <- lapply(images.files.top.rejection.rate4, read.image)
   
   # Add the images to the plot using geom_image()
-  p4 <- ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), y = rejection.rate, fill = Country.of.asylum)) +
+  plot.top.rejection.rate <- ggplot(df.top.rejection.rate5, aes(x = reorder(Country.of.asylum, -rejection.rate), 
+                                                                y = rejection.rate, fill = Country.of.asylum)) +
     geom_bar(stat = "identity") +
-    ggimage::geom_image(aes(x = Country.of.asylum, y = 0, image = image_files4), size = 0.08) +
+    ggimage::geom_image(aes(x = Country.of.asylum, y = 0, image = images.files.top.rejection.rate4), 
+                        size = 0.08) +
     geom_text(aes(label = round(rejection.rate, 1)), vjust = -0.5, size = 4) + # Add data labels to bars as percentages
     labs(x = "Countries of Asylum", y = "Rejection Rate") + # Remove x-axis label
     ggtitle("Top 5 Countries of Asylum by Rejection Rate") +
-    scale_fill_manual(values = color_palette) + # Use the defined color palette
+    scale_fill_manual(values = color.palette) + # Use the defined color palette
     theme_minimal() +
     theme(plot.title = element_text(size = 16, face = "bold", hjust = +0.5), # Increase font size of title
           axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
@@ -767,29 +792,30 @@ descriptives <- function() {
   
   
   ##### pie chart with total decisions by income level
-  income_levels <- dt.asylum %>%
+  income.levels <- dt.asylum %>%
     group_by(Asylum_Income) %>%
     summarize(total_decisions = sum(Total.decisions))
   
   # Create a pie chart
-  income_levels_filtered <- income_levels[income_levels$Asylum_Income %in% c("High income", "Low income", "Lower middle income", "Upper middle income"), ]
+  income.levels.filtered <- income.levels[income.levels$Asylum_Income %in% 
+                                            c("High income", 
+                                              "Low income", 
+                                              "Lower middle income", 
+                                              "Upper middle income"), ]
   
-  p5 <- ggplot(income_levels_filtered, aes(x="", y=total_decisions, fill=Asylum_Income)) +
+  plot.income.level <- ggplot(income.levels.filtered, aes(x="", y=total_decisions, 
+                                                          fill=Asylum_Income)) +
     geom_bar(stat="identity", width=1) +
     coord_polar("y", start=0) +
     labs(fill="Income Level", x=NULL, y=NULL, title="Total Decisions by Income Level") +
     theme_void() +
     geom_text(aes(label=paste0(round(total_decisions/sum(total_decisions)*100),"%")), 
               position=position_stack(vjust=0.5), size=4) +
-    scale_fill_manual(values = color_palette) + # Use the defined color palette
+    scale_fill_manual(values = color.palette) + # Use the defined color palette
     theme(plot.title = element_text(size = 16, face = "bold", hjust = +0.5), # Increase font size of title
           axis.title = element_text(size = 14, face = "bold"), # Increase font size of axis labels
           axis.text = element_blank(), # Remove axis tick labels
           plot.margin = unit(c(1, 1, 1, 1), "lines")) # Add space around the plot
-  
-  
-  
-  
   
   
   # Call reactive element
@@ -797,18 +823,22 @@ descriptives <- function() {
   pal <- colorNumeric(palette = "Blues", domain = df.rejections.map$rejection.rate)
   
   # Create map with rejection rate
-  map <- leaflet(data = df.rejections.map) %>%
+  leaflet.rejection <- leaflet(data = df.rejections.map) %>%
     addTiles() %>%
     addCircleMarkers(lng = ~asylum_long, lat = ~asylum_lat,
                      color = ~pal(rejection.rate), fillOpacity = 10,
                      radius = 10,
                      popup = ~paste("Country: ", Country.of.asylum, "<br>",
-                                    "Rejection Rate: ", round((rejection.rate * 100), 1), "%", "<br>",
-                                    "Total Decisions: ", total.decisions, "<br>",
-                                    "Total Rejections: ", total.rejections)) %>%
+                                    "Rejection Rate: ", 
+                                    round((rejection.rate * 100), 1), "%", "<br>",
+                                    "Total Decisions: ", 
+                                    total.decisions, "<br>",
+                                    "Total Rejections: ", 
+                                    total.rejections)) %>%
     addLegend(pal = pal, values = df.rejections.map$rejection.rate,
               title = "Rejection Rate", position = "bottomright")
   
   
-  return(list(p1, p2, p3, p4, p5, map))
+  return(list(plot.top.asylum, plot.top.origin, plot.top.rejection, 
+              plot.top.rejection.rate, plot.income.level, leaflet.rejection))
 }
